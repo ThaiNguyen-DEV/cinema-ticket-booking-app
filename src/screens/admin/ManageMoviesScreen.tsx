@@ -39,8 +39,8 @@ const ManageMoviesScreen = ({ navigation }: any) => {
 
       const moviesSnapshot = await getDocs(collection(db, "movies"));
       const moviesData = moviesSnapshot.docs.map((doc) => ({
-        id: doc.id,
         ...(doc.data() as Movie),
+        id: doc.id,
       }));
 
       // Sort movies by release date (newest first) with safer date handling
@@ -237,7 +237,10 @@ const ManageMoviesScreen = ({ navigation }: any) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+          style={{ flex: 1, backgroundColor: '#fff' }}
+          edges={['top']}
+        >
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Manage Movies</Text>
         <TouchableOpacity

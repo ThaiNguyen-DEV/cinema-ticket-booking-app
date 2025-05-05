@@ -214,9 +214,9 @@ const MyTicketsScreen = ({ navigation }: any) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <Text style={styles.headerTitle}>My Tickets</Text>
-      </View>
+      </View> */}
 
       {tickets.length > 0 ? (
         <FlatList

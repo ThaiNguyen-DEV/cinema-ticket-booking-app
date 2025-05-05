@@ -54,8 +54,11 @@ const ArticleScreen = ({ route, navigation }: any) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: '#fff' }}
+      edges={['top']}
+    >
+      {/* <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -64,7 +67,7 @@ const ArticleScreen = ({ route, navigation }: any) => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Article</Text>
         <View style={styles.placeholder} />
-      </View>
+      </View> */}
 
       <ScrollView style={styles.content}>
         <Image
@@ -79,13 +82,13 @@ const ArticleScreen = ({ route, navigation }: any) => {
           <Text style={styles.articleDate}>
             {article.createdAt && article.createdAt.seconds
               ? new Date(article.createdAt.seconds * 1000).toLocaleDateString(
-                  "en-US",
-                  {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  }
-                )
+                "en-US",
+                {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                }
+              )
               : "Unknown date"}
           </Text>
 

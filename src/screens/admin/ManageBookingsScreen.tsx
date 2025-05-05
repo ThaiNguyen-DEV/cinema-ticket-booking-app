@@ -347,10 +347,13 @@ const ManageBookingsScreen = ({ navigation }: any) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: '#fff' }}
+      edges={['top']}
+    >
+      {/* <View style={styles.header}>
         <Text style={styles.headerTitle}>Manage Bookings</Text>
-      </View>
+      </View> */}
 
       <View style={styles.searchContainer}>
         <Ionicons

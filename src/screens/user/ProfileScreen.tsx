@@ -97,10 +97,13 @@ const ProfileScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: '#fff' }}
+      edges={['top']}
+    >
+      {/* <View style={styles.header}>
         <Text style={styles.headerTitle}>My Profile</Text>
-      </View>
+      </View> */}
 
       <ScrollView style={styles.content}>
         <View style={styles.profileSection}>

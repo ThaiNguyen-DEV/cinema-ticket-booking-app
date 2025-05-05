@@ -254,8 +254,11 @@ const EditMovieScreen = ({ route, navigation }: any) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: '#fff' }}
+      edges={['top']}
+    >
+      {/* <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -266,7 +269,7 @@ const EditMovieScreen = ({ route, navigation }: any) => {
           {isNew ? "Add Movie" : "Edit Movie"}
         </Text>
         <View style={styles.placeholder} />
-      </View>
+      </View> */}
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -398,10 +401,10 @@ const EditMovieScreen = ({ route, navigation }: any) => {
                 <Text>
                   {movie.releaseDate instanceof Date
                     ? movie.releaseDate.toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
                     : "Select date"}
                 </Text>
                 <Ionicons name="calendar-outline" size={20} color="#666" />
@@ -429,10 +432,10 @@ const EditMovieScreen = ({ route, navigation }: any) => {
                 <Text>
                   {movie.endDate instanceof Date
                     ? movie.endDate.toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
                     : "Select date"}
                 </Text>
                 <Ionicons name="calendar-outline" size={20} color="#666" />

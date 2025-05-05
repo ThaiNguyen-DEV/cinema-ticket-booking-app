@@ -169,7 +169,10 @@ const HomeScreen = ({ navigation }: any) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: '#fff' }}
+      edges={['top']}
+    >
       <ScrollView
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -186,7 +189,7 @@ const HomeScreen = ({ navigation }: any) => {
 
         {promotions.length > 0 && (
           <View style={styles.carouselContainer}>
-            <Text style={styles.sectionTitle}>Promotions</Text>
+            {/* <Text style={styles.sectionTitle}>Promotions</Text> */}
             <Carousel
               width={width - 40}
               height={180}
@@ -259,6 +262,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   carouselContainer: {
+    alignItems: 'center',
     marginBottom: 20,
   },
   sectionTitle: {

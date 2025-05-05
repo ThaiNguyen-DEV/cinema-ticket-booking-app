@@ -175,16 +175,19 @@ const BookingScreen = ({ route, navigation }: any) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+          style={{ flex: 1, backgroundColor: '#fff' }}
+          edges={['top']}
+        >
       <View style={styles.header}>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Select Showtime</Text>
-        <View style={styles.placeholder} />
+        <View style={styles.placeholder} /> */}
       </View>
 
       <View style={styles.movieInfo}>
@@ -260,8 +263,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: 15,
-    borderBottomWidth: 1,
     borderBottomColor: "#ddd",
     backgroundColor: "#fff",
   },

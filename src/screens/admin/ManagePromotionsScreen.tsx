@@ -161,7 +161,10 @@ const ManagePromotionsScreen = ({ navigation }: any) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: '#fff' }}
+      edges={['top']}
+    >
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Manage Promotions</Text>
         <TouchableOpacity

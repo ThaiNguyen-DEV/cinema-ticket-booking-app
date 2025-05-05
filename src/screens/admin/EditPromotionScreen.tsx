@@ -284,8 +284,11 @@ const EditPromotionScreen = ({ route, navigation }: any) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: '#fff' }}
+      edges={['top']}
+    >
+      {/* <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -296,7 +299,7 @@ const EditPromotionScreen = ({ route, navigation }: any) => {
           {isNew ? "Add Promotion" : "Edit Promotion"}
         </Text>
         <View style={styles.placeholder} />
-      </View>
+      </View> */}
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}

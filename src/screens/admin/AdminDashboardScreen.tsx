@@ -21,6 +21,20 @@ import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 
+import { signOut } from "firebase/auth";
+import { auth } from "../../config/firebase";
+
+const logout = async (): Promise<void> => {
+  try {
+    await signOut(auth);
+    // onAuthStateChanged sẽ tự xử lý chuyển về login
+  } catch (error) {
+    console.error("Logout error:", error);
+    throw error;
+  }
+};
+
+
 const AdminDashboardScreen = ({ navigation }: any) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -120,7 +134,7 @@ const AdminDashboardScreen = ({ navigation }: any) => {
           latestBookingsSnapshot.docs.map(async (doc) => {
             const booking = {
               id: doc.id,
-              ...(doc.data() as { movieId: string; [key: string]: any }),
+              ...(doc.data() as { movieId: string;[key: string]: any }),
             };
 
             // Fetch movie data
@@ -172,25 +186,37 @@ const AdminDashboardScreen = ({ navigation }: any) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Admin Dashboard</Text>
-      </View>
-
-      <ScrollView style={styles.content}>
+    //no flex1 in containner
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: '#fff' }}
+      edges={['top']}
+    >
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 0 }}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.greeting}>
-          <Text style={styles.greetingText}>
-            Welcome, {user?.displayName || "Admin"}
-          </Text>
-          <Text style={styles.dateText}>
-            {new Date().toLocaleDateString("en-US", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </Text>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <View >
+              <Text style={styles.greetingText}>
+                Welcome, {user?.displayName || "Admin"}
+              </Text>
+              <Text style={styles.dateText}>
+                {new Date().toLocaleDateString("en-US", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={logout}>
+              <Ionicons name="log-out-outline" size={24} color="#E50914" />
+            </TouchableOpacity>
+          </View>
         </View>
+
 
         <View style={styles.statsContainer}>
           <View style={styles.statsRow}>
@@ -289,8 +315,8 @@ const AdminDashboardScreen = ({ navigation }: any) => {
                   <Text style={styles.bookingDate}>
                     {booking.createdAt && booking.createdAt.seconds
                       ? new Date(
-                          booking.createdAt.seconds * 1000
-                        ).toLocaleString()
+                        booking.createdAt.seconds * 1000
+                      ).toLocaleString()
                       : "Unknown date"}
                   </Text>
                 </View>
@@ -346,7 +372,6 @@ const AdminDashboardScreen = ({ navigation }: any) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: "#f5f5f5",
   },
   loadingContainer: {
@@ -370,7 +395,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   greeting: {
-    padding: 20,
+    padding: 10,
     backgroundColor: "#fff",
   },
   greetingText: {

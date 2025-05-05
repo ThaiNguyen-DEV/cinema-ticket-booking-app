@@ -13,6 +13,8 @@ import {
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, db } from "../config/firebase";
 
+
+
 type AuthContextType = {
   user: User | null;
   isAdmin: boolean;

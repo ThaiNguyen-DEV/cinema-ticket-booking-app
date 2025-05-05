@@ -304,8 +304,11 @@ const ManageShowtimesScreen = ({ route, navigation }: any) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView
+          style={{ flex: 1, backgroundColor: '#fff' }}
+          edges={['top']}
+        >
+      {/* <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -314,7 +317,7 @@ const ManageShowtimesScreen = ({ route, navigation }: any) => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Manage Showtimes</Text>
         <View style={styles.placeholder} />
-      </View>
+      </View> */}
 
       {loading ? (
         <View style={styles.loadingContainer}>

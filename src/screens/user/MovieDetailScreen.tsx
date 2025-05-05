@@ -66,7 +66,10 @@ const MovieDetailScreen = ({ route, navigation }: any) => {
   const youtubeId = movie.trailerUrl ? getYoutubeId(movie.trailerUrl) : null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: '#fff' }}
+      edges={['top']}
+    >
       <ScrollView>
         <View style={styles.posterContainer}>
           <Image
@@ -75,12 +78,12 @@ const MovieDetailScreen = ({ route, navigation }: any) => {
             resizeMode="cover"
           />
           <View style={styles.overlay}>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.backButton}
               onPress={() => navigation.goBack()}
             >
               <Ionicons name="arrow-back" size={24} color="#fff" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
 
