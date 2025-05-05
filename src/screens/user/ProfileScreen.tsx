@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+"use client";
+
+import { useState } from "react";
 import {
   StyleSheet,
   View,
@@ -47,11 +49,18 @@ const ProfileScreen = () => {
     }
   };
 
+  // Update the handleLogout function to ensure it works properly
   const handleLogout = async () => {
     try {
+      setLoading(true);
       await logout();
+      console.log("Logout successful");
+      // The AuthContext's onAuthStateChanged listener should handle the redirect
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      console.error("Logout error:", error);
+      Alert.alert("Error", "Failed to logout. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,6 +69,31 @@ const ProfileScreen = () => {
       { text: "Cancel", style: "cancel" },
       { text: "Logout", onPress: handleLogout, style: "destructive" },
     ]);
+  };
+
+  // Add handlers for the settings items
+  const handlePaymentMethods = () => {
+    Alert.alert(
+      "Payment Methods",
+      "This feature is coming soon! You'll be able to manage your payment methods here.",
+      [{ text: "OK" }]
+    );
+  };
+
+  const handleNotifications = () => {
+    Alert.alert(
+      "Notifications",
+      "This feature is coming soon! You'll be able to manage your notification preferences here.",
+      [{ text: "OK" }]
+    );
+  };
+
+  const handleChangePassword = () => {
+    Alert.alert(
+      "Change Password",
+      "This feature is coming soon! You'll be able to update your password here.",
+      [{ text: "OK" }]
+    );
   };
 
   return (
@@ -136,7 +170,10 @@ const ProfileScreen = () => {
         <View style={styles.settingsSection}>
           <Text style={styles.sectionTitle}>Account Settings</Text>
 
-          <TouchableOpacity style={styles.settingItem}>
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={handlePaymentMethods}
+          >
             <View style={styles.settingIcon}>
               <Ionicons name="card-outline" size={24} color="#E50914" />
             </View>
@@ -149,7 +186,10 @@ const ProfileScreen = () => {
             <Ionicons name="chevron-forward" size={24} color="#ccc" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.settingItem}>
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={handleNotifications}
+          >
             <View style={styles.settingIcon}>
               <Ionicons
                 name="notifications-outline"
@@ -166,7 +206,10 @@ const ProfileScreen = () => {
             <Ionicons name="chevron-forward" size={24} color="#ccc" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.settingItem}>
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={handleChangePassword}
+          >
             <View style={styles.settingIcon}>
               <Ionicons name="lock-closed-outline" size={24} color="#E50914" />
             </View>
@@ -181,9 +224,19 @@ const ProfileScreen = () => {
         </View>
 
         <View style={styles.logoutSection}>
-          <TouchableOpacity style={styles.logoutButton} onPress={confirmLogout}>
-            <Ionicons name="log-out-outline" size={20} color="#E50914" />
-            <Text style={styles.logoutText}>Logout</Text>
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={confirmLogout}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color="#E50914" />
+            ) : (
+              <>
+                <Ionicons name="log-out-outline" size={20} color="#E50914" />
+                <Text style={styles.logoutText}>Logout</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>

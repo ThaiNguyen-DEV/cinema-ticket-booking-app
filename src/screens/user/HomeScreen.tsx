@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -6,13 +8,12 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
-  ActivityIndicator,
   Dimensions,
   ScrollView,
   RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import Carousel from "react-native-reanimated-carousel"; // Replace import
@@ -27,6 +28,7 @@ const HomeScreen = ({ navigation }: any) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Replace the fetchData function with this improved version that handles dates properly
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -43,32 +45,66 @@ const HomeScreen = ({ navigation }: any) => {
       }));
       setPromotions(promotionsData);
 
-      // Fetch current movies
-      const now = new Date();
-      const currentMoviesQuery = query(
-        collection(db, "movies"),
-        where("releaseDate", "<=", now),
-        where("endDate", ">=", now),
-        orderBy("releaseDate", "desc")
-      );
-      const currentMoviesSnapshot = await getDocs(currentMoviesQuery);
-      const currentMoviesData = currentMoviesSnapshot.docs.map((doc) => ({
+      // Fetch all movies first
+      const moviesSnapshot = await getDocs(collection(db, "movies"));
+      const moviesData = moviesSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      setCurrentMovies(currentMoviesData);
 
-      // Fetch upcoming movies
-      const upcomingMoviesQuery = query(
-        collection(db, "movies"),
-        where("releaseDate", ">", now),
-        orderBy("releaseDate", "asc")
-      );
-      const upcomingMoviesSnapshot = await getDocs(upcomingMoviesQuery);
-      const upcomingMoviesData = upcomingMoviesSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      // Get current date for comparison
+      const now = new Date();
+
+      // Helper function to safely convert any date format to a Date object
+      const getDateObject = (dateValue: any): Date | null => {
+        if (!dateValue) return null;
+
+        try {
+          // Handle Firestore timestamp
+          if (dateValue && typeof dateValue.toDate === "function") {
+            return dateValue.toDate();
+          }
+          // Handle Date object
+          else if (dateValue instanceof Date) {
+            return dateValue;
+          }
+          // Handle string date
+          else if (typeof dateValue === "string") {
+            return new Date(dateValue);
+          }
+          // Handle numeric timestamp
+          else if (typeof dateValue === "number") {
+            return new Date(dateValue);
+          }
+          return null;
+        } catch (error) {
+          console.error("Date conversion error:", error);
+          return null;
+        }
+      };
+
+      // Filter current movies (release date <= now <= end date)
+      const currentMoviesData = moviesData.filter((movie: any) => {
+        const releaseDate = getDateObject(movie.releaseDate);
+        const endDate = getDateObject(movie.endDate);
+
+        // If we can't determine the dates, don't include the movie
+        if (!releaseDate || !endDate) return false;
+
+        return releaseDate <= now && endDate >= now;
+      });
+
+      // Filter upcoming movies (release date > now)
+      const upcomingMoviesData = moviesData.filter((movie: any) => {
+        const releaseDate = getDateObject(movie.releaseDate);
+
+        // If we can't determine the release date, don't include the movie
+        if (!releaseDate) return false;
+
+        return releaseDate > now;
+      });
+
+      setCurrentMovies(currentMoviesData);
       setUpcomingMovies(upcomingMoviesData);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -162,6 +198,22 @@ const HomeScreen = ({ navigation }: any) => {
             />
           </View>
         )}
+
+        <View style={styles.moviesContainer}>
+          <Text style={styles.sectionTitle}>Now Showing</Text>
+          {currentMovies.length > 0 ? (
+            <FlatList
+              data={currentMovies}
+              renderItem={renderMovieItem}
+              keyExtractor={(item) => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.moviesList}
+            />
+          ) : (
+            <Text style={styles.noMoviesText}>No movies currently showing</Text>
+          )}
+        </View>
 
         <View style={styles.moviesContainer}>
           <Text style={styles.sectionTitle}>Coming Soon</Text>

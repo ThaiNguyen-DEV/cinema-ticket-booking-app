@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -65,15 +67,17 @@ const EditMovieScreen = ({ route, navigation }: any) => {
         const movieData = movieDoc.data();
 
         // Convert Firestore timestamps to Date objects
-        const releaseDate =
-          movieData.releaseDate instanceof Timestamp
+        const releaseDate = movieData.releaseDate
+          ? movieData.releaseDate instanceof Timestamp
             ? movieData.releaseDate.toDate()
-            : new Date(movieData.releaseDate);
+            : new Date(movieData.releaseDate)
+          : new Date();
 
-        const endDate =
-          movieData.endDate instanceof Timestamp
+        const endDate = movieData.endDate
+          ? movieData.endDate instanceof Timestamp
             ? movieData.endDate.toDate()
-            : new Date(movieData.endDate);
+            : new Date(movieData.endDate)
+          : new Date(new Date().setMonth(new Date().getMonth() + 1));
 
         setMovie({
           ...movie,
@@ -211,11 +215,15 @@ const EditMovieScreen = ({ route, navigation }: any) => {
         posterUrl = await uploadPoster();
       }
 
+      // Ensure dates are properly formatted for Firestore
       const movieData = {
         ...movie,
         posterUrl,
-        duration: parseInt(movie.duration, 10) || 0,
-        rating: parseFloat(movie.rating) || 0,
+        duration: Number.parseInt(movie.duration, 10) || 0,
+        rating: Number.parseFloat(movie.rating) || 0,
+        // Make sure dates are stored as Firestore timestamps
+        releaseDate: movie.releaseDate,
+        endDate: movie.endDate,
       };
 
       if (isNew) {
@@ -388,11 +396,13 @@ const EditMovieScreen = ({ route, navigation }: any) => {
                 onPress={() => setShowReleaseDatePicker(true)}
               >
                 <Text>
-                  {movie.releaseDate.toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
+                  {movie.releaseDate instanceof Date
+                    ? movie.releaseDate.toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "Select date"}
                 </Text>
                 <Ionicons name="calendar-outline" size={20} color="#666" />
               </TouchableOpacity>
@@ -417,11 +427,13 @@ const EditMovieScreen = ({ route, navigation }: any) => {
                 onPress={() => setShowEndDatePicker(true)}
               >
                 <Text>
-                  {movie.endDate.toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
+                  {movie.endDate instanceof Date
+                    ? movie.endDate.toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "Select date"}
                 </Text>
                 <Ionicons name="calendar-outline" size={20} color="#666" />
               </TouchableOpacity>

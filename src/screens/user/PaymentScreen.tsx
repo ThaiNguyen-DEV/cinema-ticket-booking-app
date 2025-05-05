@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -151,8 +153,16 @@ const PaymentScreen = ({ route, navigation }: any) => {
         });
       }
 
-      // Navigate to success screen or tickets screen
-      navigation.navigate("MyTickets");
+      // Show success message
+      Alert.alert("Payment Successful", "Your booking has been confirmed!", [
+        {
+          text: "View My Tickets",
+          onPress: () => {
+            // Fixed navigation - navigate to UserTabs first, then to My Tickets tab
+            navigation.navigate("UserTabs", { screen: "My Tickets" });
+          },
+        },
+      ]);
     } catch (error) {
       console.error("Error processing payment:", error);
       Alert.alert("Error", "Failed to process payment. Please try again.");
