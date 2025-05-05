@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -18,7 +20,6 @@ import {
   collection,
   getDocs,
   doc,
-  getDoc,
   addDoc,
   deleteDoc,
   query,
@@ -186,9 +187,9 @@ const ManageShowtimesScreen = ({ route, navigation }: any) => {
         date: formattedDate,
         time: formattedTime,
         screen,
-        price: parseFloat(price),
-        totalSeats: parseInt(seats, 10),
-        availableSeats: parseInt(seats, 10),
+        price: Number.parseFloat(price),
+        totalSeats: Number.parseInt(seats, 10),
+        availableSeats: Number.parseInt(seats, 10),
       };
 
       await addDoc(collection(db, "showtimes"), showtimeData);
@@ -206,7 +207,7 @@ const ManageShowtimesScreen = ({ route, navigation }: any) => {
         const showtimeId = showtimesSnapshot.docs[0].id;
 
         // Create seats (simplified version - in a real app, you'd have a more complex seat map)
-        const totalSeats = parseInt(seats, 10);
+        const totalSeats = Number.parseInt(seats, 10);
         const rows = Math.ceil(totalSeats / 8); // 8 seats per row
 
         for (let r = 0; r < rows; r++) {
@@ -220,7 +221,7 @@ const ManageShowtimesScreen = ({ route, navigation }: any) => {
               number: n,
               status: "available",
               type: r < 2 ? "standard" : r < 4 ? "premium" : "vip",
-              price: parseFloat(price) * (r < 2 ? 1 : r < 4 ? 1.2 : 1.5),
+              price: Number.parseFloat(price) * (r < 2 ? 1 : r < 4 ? 1.2 : 1.5),
             });
           }
         }

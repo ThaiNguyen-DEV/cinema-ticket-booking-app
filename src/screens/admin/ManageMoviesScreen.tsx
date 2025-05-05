@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -20,7 +22,7 @@ interface Movie {
   id: string;
   title: string;
   genre: string;
-  releaseDate: string | Date;
+  releaseDate: any; // Changed from string | Date to any to handle all possible types
   posterUrl: string;
 }
 
@@ -37,20 +39,48 @@ const ManageMoviesScreen = ({ navigation }: any) => {
 
       const moviesSnapshot = await getDocs(collection(db, "movies"));
       const moviesData = moviesSnapshot.docs.map((doc) => ({
+        id: doc.id,
         ...(doc.data() as Movie),
       }));
 
-      // Sort movies by release date (newest first)
+      // Sort movies by release date (newest first) with safer date handling
       moviesData.sort((a, b) => {
-        const dateA =
-          a.releaseDate instanceof Date
-            ? a.releaseDate
-            : new Date(a.releaseDate);
-        const dateB =
-          b.releaseDate instanceof Date
-            ? b.releaseDate
-            : new Date(b.releaseDate);
-        return dateB.getTime() - dateA.getTime();
+        // Safely convert to Date objects with fallbacks
+        const getDateValue = (dateInput: any): number => {
+          if (!dateInput) return 0;
+
+          try {
+            // Handle Firestore timestamp objects
+            if (dateInput && typeof dateInput.toDate === "function") {
+              return dateInput.toDate().getTime();
+            }
+
+            // Handle Date objects
+            if (dateInput instanceof Date) {
+              return dateInput.getTime();
+            }
+
+            // Handle string dates
+            if (typeof dateInput === "string") {
+              return new Date(dateInput).getTime();
+            }
+
+            // Handle numeric timestamps
+            if (typeof dateInput === "number") {
+              return dateInput;
+            }
+
+            return 0;
+          } catch (error) {
+            console.error("Date conversion error:", error);
+            return 0;
+          }
+        };
+
+        const dateAValue = getDateValue(a.releaseDate);
+        const dateBValue = getDateValue(b.releaseDate);
+
+        return dateBValue - dateAValue;
       });
 
       setMovies(moviesData);
@@ -114,18 +144,46 @@ const ManageMoviesScreen = ({ navigation }: any) => {
     ]);
   };
 
-  const renderMovieItem = ({ item }: any) => {
-    // Format release date
-    const releaseDate =
-      item.releaseDate instanceof Date
-        ? item.releaseDate
-        : new Date(item.releaseDate);
+  const renderMovieItem = ({ item }: { item: Movie }) => {
+    // Format release date with safer handling
+    let formattedDate = "Unknown date";
 
-    const formattedDate = releaseDate.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    try {
+      if (item.releaseDate) {
+        // Handle Firestore timestamp
+        if (typeof item.releaseDate.toDate === "function") {
+          formattedDate = item.releaseDate
+            .toDate()
+            .toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            });
+        }
+        // Handle Date object
+        else if (item.releaseDate instanceof Date) {
+          formattedDate = item.releaseDate.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
+        }
+        // Handle string date
+        else if (typeof item.releaseDate === "string") {
+          formattedDate = new Date(item.releaseDate).toLocaleDateString(
+            "en-US",
+            {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            }
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      formattedDate = "Invalid date";
+    }
 
     return (
       <View style={styles.movieCard}>
