@@ -133,11 +133,15 @@ const EditMovieScreen = ({ route, navigation }: any) => {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images, // Vẫn dùng MediaTypeOptions
         allowsEditing: true,
         aspect: [2, 3],
         quality: 0.8,
       });
+      
+      
+      
+      
 
       if (!result.canceled) {
         setPosterImage(result.assets[0]);
