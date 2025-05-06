@@ -61,9 +61,35 @@ const UserTabNavigator = () => (
       },
     })}
   >
-    <Tab.Screen name="Home" component={HomeScreen} />
-    <Tab.Screen name="My Tickets" component={MyTicketsScreen} />
-    <Tab.Screen name="Profile" component={ProfileScreen} />
+    <Tab.Screen
+      name="Home"
+      component={HomeScreen}
+      options={{
+        headerShown: true,
+        headerStyle: {
+          backgroundColor: "#E50914",
+        },
+        headerTintColor: "#fff",
+        headerTitleAlign: "center",
+      }}
+    />
+
+    <Tab.Screen name="My Tickets" component={MyTicketsScreen} options={{
+      headerShown: true,
+      headerStyle: {
+        backgroundColor: "#E50914",
+      },
+      headerTintColor: "#fff",
+      headerTitleAlign: "center",
+    }} />
+    <Tab.Screen name="Profile" component={ProfileScreen} options={{
+      headerShown: true,
+      headerStyle: {
+        backgroundColor: "#E50914",
+      },
+      headerTintColor: "#fff",
+      headerTitleAlign: "center",
+    }} />
   </Tab.Navigator>
 );
 
@@ -127,10 +153,38 @@ const AdminTabNavigator = () => (
       },
     })}
   >
-    <Tab.Screen name="Dashboard" component={AdminDashboardScreen} />
-    <Tab.Screen name="Movies" component={ManageMoviesScreen} />
-    <Tab.Screen name="Promotions" component={ManagePromotionsScreen} />
-    <Tab.Screen name="Bookings" component={ManageBookingsScreen} />
+    <Tab.Screen name="Dashboard" component={AdminDashboardScreen} options={{
+      headerShown: true,
+      headerStyle: {
+        backgroundColor: "#E50914",
+      },
+      headerTintColor: "#fff",
+      headerTitleAlign: "center",
+    }} />
+    <Tab.Screen name="Movies" component={ManageMoviesScreen} options={{
+      headerShown: true,
+      headerStyle: {
+        backgroundColor: "#E50914",
+      },
+      headerTintColor: "#fff",
+      headerTitleAlign: "center",
+    }} />
+    <Tab.Screen name="Promotions" component={ManagePromotionsScreen} options={{
+      headerShown: true,
+      headerStyle: {
+        backgroundColor: "#E50914",
+      },
+      headerTintColor: "#fff",
+      headerTitleAlign: "center",
+    }} />
+    <Tab.Screen name="Bookings" component={ManageBookingsScreen} options={{
+      headerShown: true,
+      headerStyle: {
+        backgroundColor: "#E50914",
+      },
+      headerTintColor: "#fff",
+      headerTitleAlign: "center",
+    }} />
   </Tab.Navigator>
 );
 
