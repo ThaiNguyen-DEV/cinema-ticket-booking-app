@@ -1,17 +1,20 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
   Text,
   ScrollView,
   Image,
-  TouchableOpacity,
   ActivityIndicator,
+  TouchableOpacity,
+  StatusBar,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 const ArticleScreen = ({ route, navigation }: any) => {
   const { articleId } = route.params;
@@ -54,99 +57,121 @@ const ArticleScreen = ({ route, navigation }: any) => {
   }
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: '#fff' }}
-      edges={['top']}
-    >
-      {/* <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Article</Text>
-        <View style={styles.placeholder} />
-      </View> */}
+    <View style={styles.container}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="transparent"
+        translucent
+      />
 
-      <ScrollView style={styles.content}>
+      <View style={styles.imageContainer}>
         <Image
           source={{ uri: article.imageUrl }}
           style={styles.articleImage}
           resizeMode="cover"
         />
+        <LinearGradient
+          colors={["rgba(0,0,0,0.7)", "transparent"]}
+          style={styles.gradient}
+        />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+      </View>
 
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.articleContent}>
           <Text style={styles.articleTitle}>{article.title}</Text>
 
           <Text style={styles.articleDate}>
             {article.createdAt && article.createdAt.seconds
               ? new Date(article.createdAt.seconds * 1000).toLocaleDateString(
-                "en-US",
-                {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                }
-              )
+                  "en-US",
+                  {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  }
+                )
               : "Unknown date"}
           </Text>
 
           <Text style={styles.articleText}>{article.content}</Text>
+
+          <View style={styles.shareContainer}>
+            <TouchableOpacity style={styles.shareButton}>
+              <Ionicons name="share-social-outline" size={20} color="#fff" />
+              <Text style={styles.shareText}>Share Article</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#fff",
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#fff",
   },
   errorContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#fff",
   },
   errorText: {
     fontSize: 18,
     color: "#666",
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 15,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
+  imageContainer: {
+    position: "relative",
+    height: 250,
+    width: "100%",
+  },
+  gradient: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 100,
   },
   backButton: {
-    padding: 5,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  placeholder: {
-    width: 24,
-  },
-  content: {
-    flex: 1,
+    position: "absolute",
+    top: 50,
+    left: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
   },
   articleImage: {
     width: "100%",
-    height: 250,
+    height: "100%",
+  },
+  content: {
+    flex: 1,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    marginTop: -20,
   },
   articleContent: {
     padding: 20,
+    paddingTop: 30,
   },
   articleTitle: {
     fontSize: 24,
@@ -158,11 +183,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     marginBottom: 20,
+    fontStyle: "italic",
   },
   articleText: {
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 26,
     color: "#333",
+    letterSpacing: 0.3,
+  },
+  shareContainer: {
+    marginTop: 30,
+    alignItems: "center",
+  },
+  shareButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E50914",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+  },
+  shareText: {
+    color: "#fff",
+    marginLeft: 8,
+    fontWeight: "600",
   },
 });
 

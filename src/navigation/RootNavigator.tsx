@@ -1,4 +1,4 @@
-import React from "react";
+"use client";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useAuth } from "../context/AuthContext";
@@ -18,6 +18,9 @@ import PaymentScreen from "../screens/user/PaymentScreen";
 import MyTicketsScreen from "../screens/user/MyTicketsScreen";
 import ProfileScreen from "../screens/user/ProfileScreen";
 import ArticleScreen from "../screens/user/ArticleScreen";
+import PaymentMethodsScreen from "../screens/user/PaymentMethodsScreen";
+import NotificationsScreen from "../screens/user/NotificationsScreen";
+import ChangePasswordScreen from "../screens/user/ChangePasswordScreen";
 
 // Admin Screens
 import AdminDashboardScreen from "../screens/admin/AdminDashboardScreen";
@@ -72,11 +75,34 @@ const UserStackNavigator = () => (
       component={UserTabNavigator}
       options={{ headerShown: false }}
     />
-    <Stack.Screen name="MovieDetail" component={MovieDetailScreen} />
+    <Stack.Screen
+      name="MovieDetail"
+      component={MovieDetailScreen}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen name="Booking" component={BookingScreen} />
     <Stack.Screen name="SeatSelection" component={SeatSelectionScreen} />
     <Stack.Screen name="Payment" component={PaymentScreen} />
-    <Stack.Screen name="Article" component={ArticleScreen} />
+    <Stack.Screen
+      name="Article"
+      component={ArticleScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="PaymentMethods"
+      component={PaymentMethodsScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="Notifications"
+      component={NotificationsScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="ChangePassword"
+      component={ChangePasswordScreen}
+      options={{ headerShown: false }}
+    />
   </Stack.Navigator>
 );
 
@@ -119,6 +145,7 @@ const AdminStackNavigator = () => (
     <Stack.Screen name="EditMovie" component={EditMovieScreen} />
     <Stack.Screen name="EditPromotion" component={EditPromotionScreen} />
     <Stack.Screen name="ManageShowtimes" component={ManageShowtimesScreen} />
+    <Stack.Screen name="Article" component={ArticleScreen} />
   </Stack.Navigator>
 );
 

@@ -11,12 +11,15 @@ import {
   Dimensions,
   ScrollView,
   RefreshControl,
+  StatusBar,
+  ImageBackground,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
-import Carousel from "react-native-reanimated-carousel"; // Replace import
+import Carousel from "react-native-reanimated-carousel";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 const { width } = Dimensions.get("window");
 
@@ -130,14 +133,11 @@ const HomeScreen = ({ navigation }: any) => {
         navigation.navigate("Article", { articleId: item.articleId })
       }
     >
-      <Image
+      <ImageBackground
         source={{ uri: item.imageUrl }}
         style={styles.carouselImage}
         resizeMode="cover"
       />
-      <View style={styles.carouselOverlay}>
-        <Text style={styles.carouselTitle}>{item.title}</Text>
-      </View>
     </TouchableOpacity>
   );
 
@@ -145,12 +145,19 @@ const HomeScreen = ({ navigation }: any) => {
     <TouchableOpacity
       style={styles.movieCard}
       onPress={() => navigation.navigate("MovieDetail", { movieId: item.id })}
+      activeOpacity={0.7}
     >
-      <Image
-        source={{ uri: item.posterUrl }}
-        style={styles.moviePoster}
-        resizeMode="cover"
-      />
+      <View style={styles.posterContainer}>
+        <Image
+          source={{ uri: item.posterUrl }}
+          style={styles.moviePoster}
+          resizeMode="cover"
+        />
+        <View style={styles.ratingBadge}>
+          <Ionicons name="star" size={12} color="#FFD700" />
+          <Text style={styles.ratingText}>{item.rating}</Text>
+        </View>
+      </View>
       <View style={styles.movieInfo}>
         <Text style={styles.movieTitle} numberOfLines={1}>
           {item.title}
@@ -162,23 +169,18 @@ const HomeScreen = ({ navigation }: any) => {
           style={styles.bookButton}
           onPress={() => navigation.navigate("Booking", { movieId: item.id })}
         >
-          <Text style={styles.bookButtonText}>Book Ticket</Text>
+          <Text style={styles.bookButtonText}>Book Now</Text>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: '#fff' }}
-      edges={['top']}
-    >
-      <ScrollView
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        <View style={styles.header}>
+    <View style={styles.mainContainer}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+
+      <View style={styles.header}>
+        <View>
           <Text style={styles.greeting}>
             Hello, {user?.displayName || "Guest"}
           </Text>
@@ -186,24 +188,56 @@ const HomeScreen = ({ navigation }: any) => {
             What would you like to watch today?
           </Text>
         </View>
+        <TouchableOpacity
+          style={styles.profileButton}
+          onPress={() => navigation.navigate("Profile")}
+        >
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarText}>
+              {user?.displayName
+                ? user.displayName.charAt(0).toUpperCase()
+                : "G"}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View>
 
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        showsVerticalScrollIndicator={false}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+      >
         {promotions.length > 0 && (
           <View style={styles.carouselContainer}>
-            {/* <Text style={styles.sectionTitle}>Promotions</Text> */}
             <Carousel
-              width={width - 40}
-              height={180}
+              width={width}
+              height={200}
               data={promotions}
               renderItem={renderPromotionItem}
               loop
               autoPlay
               autoPlayInterval={5000}
+              pagingEnabled
+              mode="parallax"
+              modeConfig={{
+                parallaxScrollingScale: 0.9,
+                parallaxScrollingOffset: 50,
+              }}
             />
           </View>
         )}
 
         <View style={styles.moviesContainer}>
-          <Text style={styles.sectionTitle}>Now Showing</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Now Showing</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAllText}>See All</Text>
+            </TouchableOpacity>
+          </View>
+
           {currentMovies.length > 0 ? (
             <FlatList
               data={currentMovies}
@@ -214,12 +248,23 @@ const HomeScreen = ({ navigation }: any) => {
               contentContainerStyle={styles.moviesList}
             />
           ) : (
-            <Text style={styles.noMoviesText}>No movies currently showing</Text>
+            <View style={styles.noMoviesContainer}>
+              <Ionicons name="film-outline" size={50} color="#ccc" />
+              <Text style={styles.noMoviesText}>
+                No movies currently showing
+              </Text>
+            </View>
           )}
         </View>
 
         <View style={styles.moviesContainer}>
-          <Text style={styles.sectionTitle}>Coming Soon</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Coming Soon</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAllText}>See All</Text>
+            </TouchableOpacity>
+          </View>
+
           {upcomingMovies.length > 0 ? (
             <FlatList
               data={upcomingMovies}
@@ -230,82 +275,133 @@ const HomeScreen = ({ navigation }: any) => {
               contentContainerStyle={styles.moviesList}
             />
           ) : (
-            <Text style={styles.noMoviesText}>No upcoming movies</Text>
+            <View style={styles.noMoviesContainer}>
+              <Ionicons name="calendar-outline" size={50} color="#ccc" />
+              <Text style={styles.noMoviesText}>No upcoming movies</Text>
+            </View>
           )}
         </View>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Cinema Ticket Booking App</Text>
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: "#f8f8f8",
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: "#f8f8f8",
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: "#f8f8f8",
   },
   header: {
-    padding: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
   greeting: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "bold",
     color: "#333",
   },
   subGreeting: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#666",
-    marginTop: 5,
+    marginTop: 4,
+  },
+  profileButton: {
+    padding: 5,
+  },
+  avatarCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#E50914",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
   },
   carouselContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginHorizontal: 20,
-    marginBottom: 10,
-    color: "#333",
+    marginVertical: 15,
   },
   carouselItem: {
-    width: width - 40,
-    height: 180,
-    borderRadius: 10,
+    borderRadius: 12,
     overflow: "hidden",
+    marginHorizontal: 5,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   carouselImage: {
     width: "100%",
     height: "100%",
+    justifyContent: "flex-end",
   },
-  carouselOverlay: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    padding: 10,
+  carouselGradient: {
+    height: "50%",
+    justifyContent: "flex-end",
+    padding: 15,
   },
   carouselTitle: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    marginBottom: 15,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  seeAllText: {
+    fontSize: 14,
+    color: "#E50914",
+    fontWeight: "600",
   },
   moviesContainer: {
-    marginBottom: 20,
+    marginBottom: 25,
   },
   moviesList: {
     paddingHorizontal: 10,
+    paddingBottom: 10,
   },
   movieCard: {
     width: 160,
     marginHorizontal: 10,
     backgroundColor: "#fff",
-    borderRadius: 10,
+    borderRadius: 12,
     overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -313,40 +409,72 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  posterContainer: {
+    position: "relative",
+  },
   moviePoster: {
     width: "100%",
-    height: 200,
+    height: 220,
+  },
+  ratingBadge: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  ratingText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "bold",
+    marginLeft: 4,
   },
   movieInfo: {
-    padding: 10,
+    padding: 12,
   },
   movieTitle: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 5,
+    marginBottom: 4,
   },
   movieGenre: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#666",
     marginBottom: 10,
   },
   bookButton: {
     backgroundColor: "#E50914",
-    borderRadius: 5,
-    padding: 8,
+    borderRadius: 6,
+    paddingVertical: 8,
     alignItems: "center",
   },
   bookButtonText: {
     color: "#fff",
     fontSize: 14,
-    fontWeight: "bold",
+    fontWeight: "600",
+  },
+  noMoviesContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 30,
   },
   noMoviesText: {
-    textAlign: "center",
-    color: "#666",
     marginTop: 10,
-    marginHorizontal: 20,
+    color: "#666",
+    fontSize: 16,
+  },
+  footer: {
+    padding: 20,
+    alignItems: "center",
+  },
+  footerText: {
+    color: "#999",
+    fontSize: 12,
   },
 });
 

@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -10,7 +12,6 @@ import {
   RefreshControl,
   TextInput,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
   collection,
   getDocs,
@@ -19,7 +20,7 @@ import {
   updateDoc,
   query,
   orderBy,
-  DocumentData,
+  type DocumentData,
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import { Ionicons } from "@expo/vector-icons";
@@ -347,10 +348,7 @@ const ManageBookingsScreen = ({ navigation }: any) => {
   };
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: '#fff' }}
-      edges={['top']}
-    >
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* <View style={styles.header}>
         <Text style={styles.headerTitle}>Manage Bookings</Text>
       </View> */}
@@ -403,7 +401,7 @@ const ManageBookingsScreen = ({ navigation }: any) => {
           }
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

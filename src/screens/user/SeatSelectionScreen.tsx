@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -9,7 +11,6 @@ import {
   Alert,
   Dimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
   doc,
   getDoc,
@@ -19,7 +20,6 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
-import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 const SEAT_SIZE = 30;
@@ -197,10 +197,7 @@ const SeatSelectionScreen = ({ route, navigation }: any) => {
   }
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: '#fff' }}
-      edges={['top']}
-    >
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <View style={styles.header}>
         {/* <TouchableOpacity
           style={styles.backButton}
@@ -270,7 +267,7 @@ const SeatSelectionScreen = ({ route, navigation }: any) => {
           <Text style={styles.continueButtonText}>Continue</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

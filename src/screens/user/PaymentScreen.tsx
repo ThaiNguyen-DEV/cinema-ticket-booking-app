@@ -11,7 +11,6 @@ import {
   Alert,
   TextInput,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
   doc,
   getDoc,
@@ -197,10 +196,7 @@ const PaymentScreen = ({ route, navigation }: any) => {
   }
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: '#fff' }}
-      edges={['top']}
-    >
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <View style={styles.header}>
         {/* <TouchableOpacity
           style={styles.backButton}
@@ -379,7 +375,7 @@ const PaymentScreen = ({ route, navigation }: any) => {
           )}
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -406,7 +402,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    
+
     borderBottomColor: "#ddd",
     backgroundColor: "#fff",
   },

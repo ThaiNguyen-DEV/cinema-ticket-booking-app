@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -8,7 +10,6 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
   doc,
   getDoc,
@@ -18,7 +19,6 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
-import { Ionicons } from "@expo/vector-icons";
 import { format } from "date-fns";
 
 const BookingScreen = ({ route, navigation }: any) => {
@@ -175,10 +175,7 @@ const BookingScreen = ({ route, navigation }: any) => {
   }
 
   return (
-    <SafeAreaView
-          style={{ flex: 1, backgroundColor: '#fff' }}
-          edges={['top']}
-        >
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <View style={styles.header}>
         {/* <TouchableOpacity
           style={styles.backButton}
@@ -245,7 +242,7 @@ const BookingScreen = ({ route, navigation }: any) => {
           <Text style={styles.continueButtonText}>Continue</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -10,7 +12,6 @@ import {
   Alert,
   RefreshControl,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
   collection,
   getDocs,
@@ -161,10 +162,7 @@ const ManagePromotionsScreen = ({ navigation }: any) => {
   };
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: '#fff' }}
-      edges={['top']}
-    >
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Manage Promotions</Text>
         <TouchableOpacity
@@ -196,7 +194,7 @@ const ManagePromotionsScreen = ({ navigation }: any) => {
           }
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

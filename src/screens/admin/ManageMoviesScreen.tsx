@@ -13,7 +13,6 @@ import {
   TextInput,
   RefreshControl,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import { Ionicons } from "@expo/vector-icons";
@@ -237,10 +236,7 @@ const ManageMoviesScreen = ({ navigation }: any) => {
   };
 
   return (
-    <SafeAreaView
-          style={{ flex: 1, backgroundColor: '#fff' }}
-          edges={['top']}
-        >
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Manage Movies</Text>
         <TouchableOpacity
@@ -299,7 +295,7 @@ const ManageMoviesScreen = ({ navigation }: any) => {
           }
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

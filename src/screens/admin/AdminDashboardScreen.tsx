@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -7,7 +9,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
   collection,
   getDocs,
@@ -33,7 +34,6 @@ const logout = async (): Promise<void> => {
     throw error;
   }
 };
-
 
 const AdminDashboardScreen = ({ navigation }: any) => {
   const { user } = useAuth();
@@ -134,7 +134,7 @@ const AdminDashboardScreen = ({ navigation }: any) => {
           latestBookingsSnapshot.docs.map(async (doc) => {
             const booking = {
               id: doc.id,
-              ...(doc.data() as { movieId: string;[key: string]: any }),
+              ...(doc.data() as { movieId: string; [key: string]: any }),
             };
 
             // Fetch movie data
@@ -187,18 +187,21 @@ const AdminDashboardScreen = ({ navigation }: any) => {
 
   return (
     //no flex1 in containner
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: '#fff' }}
-      edges={['top']}
-    >
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <ScrollView
         style={styles.content}
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 0 }}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.greeting}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-            <View >
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <View>
               <Text style={styles.greetingText}>
                 Welcome, {user?.displayName || "Admin"}
               </Text>
@@ -216,7 +219,6 @@ const AdminDashboardScreen = ({ navigation }: any) => {
             </TouchableOpacity>
           </View>
         </View>
-
 
         <View style={styles.statsContainer}>
           <View style={styles.statsRow}>
@@ -315,8 +317,8 @@ const AdminDashboardScreen = ({ navigation }: any) => {
                   <Text style={styles.bookingDate}>
                     {booking.createdAt && booking.createdAt.seconds
                       ? new Date(
-                        booking.createdAt.seconds * 1000
-                      ).toLocaleString()
+                          booking.createdAt.seconds * 1000
+                        ).toLocaleString()
                       : "Unknown date"}
                   </Text>
                 </View>
@@ -366,7 +368,7 @@ const AdminDashboardScreen = ({ navigation }: any) => {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
