@@ -9,100 +9,28 @@ import {
   Image,
   RefreshControl,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  getDoc,
-} from "firebase/firestore";
-import { db } from "../../config/firebase";
-import { useAuth } from "../../context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import QRCode from "react-native-qrcode-svg";
+import { colors, radii, shadow } from "../../theme";
+import { demoTickets } from "../../data/demoData";
+import AppHeadbar from "../../components/AppHeadbar";
 
 const MyTicketsScreen = ({ navigation }: any) => {
-  const { user } = useAuth();
   const [tickets, setTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
 
   const fetchTickets = async () => {
-    if (!user) return;
-
-    try {
-      setLoading(true);
-
-      // Query bookings for the current user
-      const bookingsQuery = query(
-        collection(db, "bookings"),
-        where("userId", "==", user.uid)
-      );
-
-      const bookingsSnapshot = await getDocs(bookingsQuery);
-      const bookingsData = bookingsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      // Fetch additional data for each booking
-      const ticketsData = await Promise.all(
-        bookingsData.map(async (booking) => {
-          // Fetch movie data
-          const movieDoc = await getDoc(doc(db, "movies", booking.movieId));
-          const movie = movieDoc.exists()
-            ? { id: movieDoc.id, ...movieDoc.data() }
-            : null;
-
-          // Fetch showtime data
-          const showtimeDoc = await getDoc(
-            doc(db, "showtimes", booking.showtimeId)
-          );
-          const showtime = showtimeDoc.exists()
-            ? { id: showtimeDoc.id, ...showtimeDoc.data() }
-            : null;
-
-          // Fetch seats data
-          const seatsData = [];
-          for (const seatId of booking.seats) {
-            const seatDoc = await getDoc(doc(db, "seats", seatId));
-            if (seatDoc.exists()) {
-              seatsData.push({ id: seatDoc.id, ...seatDoc.data() });
-            }
-          }
-
-          return {
-            ...booking,
-            movie,
-            showtime,
-            seats: seatsData,
-          };
-        })
-      );
-
-      // Sort tickets by date (newest first)
-      ticketsData.sort((a, b) => {
-        return (
-          new Date(b.createdAt.seconds * 1000).getTime() -
-          new Date(a.createdAt.seconds * 1000).getTime()
-        );
-      });
-
-      setTickets(ticketsData);
-    } catch (error) {
-      console.error("Error fetching tickets:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+    setLoading(true);
+    setTickets(demoTickets);
+    setLoading(false);
+    setRefreshing(false);
   };
 
   useEffect(() => {
     fetchTickets();
-  }, [user]);
+  }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -213,10 +141,13 @@ const MyTicketsScreen = ({ navigation }: any) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Tickets</Text>
-      </View> */}
+    <View style={styles.container}>
+      <AppHeadbar
+        eyebrow="WALLET"
+        title="My Tickets"
+        subtitle={`${tickets.length} mock booking${tickets.length === 1 ? "" : "s"} ready`}
+        rightIcon="qr-code-outline"
+      />
 
       {tickets.length > 0 ? (
         <FlatList
@@ -240,14 +171,14 @@ const MyTicketsScreen = ({ navigation }: any) => {
           </TouchableOpacity>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.lightBg,
   },
   loadingContainer: {
     flex: 1,
@@ -268,20 +199,17 @@ const styles = StyleSheet.create({
   },
   ticketsList: {
     padding: 15,
+    paddingBottom: 18,
   },
   ticketCard: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
+    backgroundColor: colors.card,
+    borderRadius: radii.lg,
     marginBottom: 15,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...shadow,
   },
   selectedTicketCard: {
-    borderColor: "#E50914",
+    borderColor: colors.primary,
     borderWidth: 1,
   },
   ticketHeader: {
@@ -345,8 +273,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   browseButton: {
-    backgroundColor: "#E50914",
-    borderRadius: 5,
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
     padding: 15,
     alignItems: "center",
     width: "80%",

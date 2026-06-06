@@ -13,17 +13,9 @@ import {
   ActivityIndicator,
   StatusBar,
 } from "react-native";
-import {
-  doc,
-  getDoc,
-  updateDoc,
-  arrayUnion,
-  arrayRemove,
-} from "firebase/firestore";
-import { db } from "../../config/firebase";
-import { useAuth } from "../../context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { demoPaymentMethods } from "../../data/demoData";
 
 interface PaymentMethod {
   id: string;
@@ -34,9 +26,9 @@ interface PaymentMethod {
 }
 
 const PaymentMethodsScreen = ({ navigation }: any) => {
-  const { user } = useAuth();
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [paymentMethods, setPaymentMethods] =
+    useState<PaymentMethod[]>(demoPaymentMethods);
+  const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(
     null
@@ -49,28 +41,8 @@ const PaymentMethodsScreen = ({ navigation }: any) => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetchPaymentMethods();
-  }, [user]);
-
-  const fetchPaymentMethods = async () => {
-    if (!user) return;
-
-    try {
-      setLoading(true);
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-
-      if (userDoc.exists() && userDoc.data().paymentMethods) {
-        setPaymentMethods(userDoc.data().paymentMethods);
-      } else {
-        setPaymentMethods([]);
-      }
-    } catch (error) {
-      console.error("Error fetching payment methods:", error);
-      Alert.alert("Error", "Failed to load payment methods");
-    } finally {
-      setLoading(false);
-    }
-  };
+    setLoading(false);
+  }, []);
 
   const handleAddMethod = () => {
     setEditingMethod(null);
@@ -136,7 +108,7 @@ const PaymentMethodsScreen = ({ navigation }: any) => {
   };
 
   const handleSaveMethod = async () => {
-    if (!user || !validateForm()) return;
+    if (!validateForm()) return;
 
     try {
       setSaving(true);
@@ -152,38 +124,28 @@ const PaymentMethodsScreen = ({ navigation }: any) => {
           (editingMethod ? editingMethod.isDefault : false),
       };
 
-      const userRef = doc(db, "users", user.uid);
-
       if (editingMethod) {
-        // Remove the old method first
-        await updateDoc(userRef, {
-          paymentMethods: arrayRemove(editingMethod),
-        });
+        setPaymentMethods((methods) =>
+          methods.map((method) =>
+            method.id === editingMethod.id ? newMethod : method
+          )
+        );
+      } else {
+        setPaymentMethods((methods) => [...methods, newMethod]);
       }
-
-      // Add the new/updated method
-      await updateDoc(userRef, {
-        paymentMethods: arrayUnion(newMethod),
-      });
-
-      // Refresh the list
-      await fetchPaymentMethods();
       setModalVisible(false);
       Alert.alert(
         "Success",
         editingMethod ? "Payment method updated" : "Payment method added"
       );
     } catch (error) {
-      console.error("Error saving payment method:", error);
-      Alert.alert("Error", "Failed to save payment method");
+      Alert.alert("Error", "Failed to save payment method locally");
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteMethod = async (method: PaymentMethod) => {
-    if (!user) return;
-
     Alert.alert(
       "Delete Payment Method",
       "Are you sure you want to delete this payment method?",
@@ -193,39 +155,8 @@ const PaymentMethodsScreen = ({ navigation }: any) => {
           text: "Delete",
           style: "destructive",
           onPress: async () => {
-            try {
-              setLoading(true);
-              const userRef = doc(db, "users", user.uid);
-
-              await updateDoc(userRef, {
-                paymentMethods: arrayRemove(method),
-              });
-
-              // If the deleted method was the default and there are other methods,
-              // set a new default
-              if (method.isDefault && paymentMethods.length > 1) {
-                const newDefault = paymentMethods.find(
-                  (m) => m.id !== method.id
-                );
-                if (newDefault) {
-                  const updatedDefault = { ...newDefault, isDefault: true };
-                  await updateDoc(userRef, {
-                    paymentMethods: arrayRemove(newDefault),
-                  });
-                  await updateDoc(userRef, {
-                    paymentMethods: arrayUnion(updatedDefault),
-                  });
-                }
-              }
-
-              await fetchPaymentMethods();
-              Alert.alert("Success", "Payment method deleted");
-            } catch (error) {
-              console.error("Error deleting payment method:", error);
-              Alert.alert("Error", "Failed to delete payment method");
-            } finally {
-              setLoading(false);
-            }
+            setPaymentMethods((methods) => methods.filter((m) => m.id !== method.id));
+            Alert.alert("Success", "Payment method deleted locally");
           },
         },
       ]
@@ -233,40 +164,14 @@ const PaymentMethodsScreen = ({ navigation }: any) => {
   };
 
   const handleSetDefault = async (method: PaymentMethod) => {
-    if (!user || method.isDefault) return;
+    if (method.isDefault) return;
 
-    try {
-      setLoading(true);
-      const userRef = doc(db, "users", user.uid);
-
-      // Update all methods to not be default
-      const updatedMethods = paymentMethods.map((m) => ({
+    const updatedMethods = paymentMethods.map((m) => ({
         ...m,
         isDefault: m.id === method.id,
       }));
-
-      // Remove all existing methods
-      for (const m of paymentMethods) {
-        await updateDoc(userRef, {
-          paymentMethods: arrayRemove(m),
-        });
-      }
-
-      // Add all updated methods
-      for (const m of updatedMethods) {
-        await updateDoc(userRef, {
-          paymentMethods: arrayUnion(m),
-        });
-      }
-
-      await fetchPaymentMethods();
-      Alert.alert("Success", "Default payment method updated");
-    } catch (error) {
-      console.error("Error setting default payment method:", error);
-      Alert.alert("Error", "Failed to update default payment method");
-    } finally {
-      setLoading(false);
-    }
+    setPaymentMethods(updatedMethods);
+    Alert.alert("Success", "Default payment method updated locally");
   };
 
   const renderPaymentMethod = ({ item }: { item: PaymentMethod }) => {

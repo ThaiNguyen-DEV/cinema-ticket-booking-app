@@ -1,0 +1,51 @@
+@startuml
+title Cinema Ticket Booking App - Navigation Flow
+
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #FFFFFF
+  BorderColor #151821
+  ArrowColor #E50914
+}
+
+start
+:Login Screen;
+if (User chooses action) then (Login)
+  :Create local mock user;
+elseif (Register)
+  :Register Screen;
+  :Create local mock user;
+endif
+
+:Main Bottom Tabs;
+
+fork
+  :Home Tab;
+  :Movie Detail;
+  :Booking;
+  :Seat Selection;
+  :Payment;
+  :My Tickets;
+fork again
+  :AI Tab;
+  :Fake Cinema AI Interface;
+fork again
+  :My Tickets Tab;
+  :Ticket Cards + QR Code;
+fork again
+  :Profile Tab;
+  :Payment Methods;
+  :Notifications;
+  :Guest Mode Notice;
+fork again
+  :Admin Tab;
+  :Admin Dashboard;
+  :Manage Movies;
+  :Manage Promotions;
+  :Manage Bookings;
+  :Manage Showtimes;
+end fork
+
+stop
+
+@enduml

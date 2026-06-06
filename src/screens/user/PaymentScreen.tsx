@@ -11,17 +11,10 @@ import {
   Alert,
   TextInput,
 } from "react-native";
-import {
-  doc,
-  getDoc,
-  addDoc,
-  collection,
-  updateDoc,
-  arrayUnion,
-} from "firebase/firestore";
-import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
+import { colors, radii } from "../../theme";
+import { getDemoMovie, getDemoSeats, getDemoShowtime } from "../../data/demoData";
 
 const PaymentScreen = ({ route, navigation }: any) => {
   const { movieId, showtimeId, selectedSeats, totalPrice } = route.params;
@@ -42,39 +35,11 @@ const PaymentScreen = ({ route, navigation }: any) => {
   const [cvv, setCvv] = useState("");
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-
-        // Fetch movie data
-        const movieDoc = await getDoc(doc(db, "movies", movieId));
-        if (movieDoc.exists()) {
-          setMovie({ id: movieDoc.id, ...movieDoc.data() });
-        }
-
-        // Fetch showtime data
-        const showtimeDoc = await getDoc(doc(db, "showtimes", showtimeId));
-        if (showtimeDoc.exists()) {
-          setShowtime({ id: showtimeDoc.id, ...showtimeDoc.data() });
-        }
-
-        // Fetch seats data
-        const seatsData = [];
-        for (const seatId of selectedSeats) {
-          const seatDoc = await getDoc(doc(db, "seats", seatId));
-          if (seatDoc.exists()) {
-            seatsData.push({ id: seatDoc.id, ...seatDoc.data() });
-          }
-        }
-        setSeats(seatsData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    setLoading(true);
+    setMovie(getDemoMovie(movieId));
+    setShowtime(getDemoShowtime(movieId, showtimeId));
+    setSeats(getDemoSeats(showtimeId).filter((seat) => selectedSeats.includes(seat.id)));
+    setLoading(false);
   }, [movieId, showtimeId, selectedSeats]);
 
   const handlePaymentMethodSelect = (method: "card" | "paypal") => {
@@ -121,7 +86,6 @@ const PaymentScreen = ({ route, navigation }: any) => {
       // In a real app, you would process the payment with Stripe/Braintree here
       // For this demo, we'll simulate a successful payment
 
-      // Create booking record
       const booking = {
         userId: user?.uid,
         movieId,
@@ -134,23 +98,7 @@ const PaymentScreen = ({ route, navigation }: any) => {
         // Generate a random booking reference
         reference: Math.random().toString(36).substring(2, 10).toUpperCase(),
       };
-
-      const bookingRef = await addDoc(collection(db, "bookings"), booking);
-
-      // Update user's bookings
-      if (user) {
-        await updateDoc(doc(db, "users", user.uid), {
-          bookings: arrayUnion(bookingRef.id),
-        });
-      }
-
-      // Update seat status to booked
-      for (const seatId of selectedSeats) {
-        await updateDoc(doc(db, "seats", seatId), {
-          status: "booked",
-          bookingId: bookingRef.id,
-        });
-      }
+      console.log("Mock booking confirmed:", booking);
 
       // Show success message
       Alert.alert("Payment Successful", "Your booking has been confirmed!", [
@@ -196,7 +144,7 @@ const PaymentScreen = ({ route, navigation }: any) => {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+    <View style={{ flex: 1, backgroundColor: colors.lightBg }}>
       <View style={styles.header}>
         {/* <TouchableOpacity
           style={styles.backButton}
@@ -404,7 +352,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
 
     borderBottomColor: "#ddd",
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
   },
   backButton: {
     padding: 5,
@@ -458,10 +406,10 @@ const styles = StyleSheet.create({
   totalValue: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#E50914",
+    color: colors.primary,
   },
   paymentMethodsContainer: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     padding: 20,
     marginBottom: 10,
   },
@@ -471,12 +419,12 @@ const styles = StyleSheet.create({
     padding: 15,
     borderWidth: 1,
     borderColor: "#ddd",
-    borderRadius: 5,
+    borderRadius: radii.md,
     marginBottom: 10,
   },
   selectedPaymentMethod: {
-    borderColor: "#E50914",
-    backgroundColor: "rgba(229, 9, 20, 0.05)",
+    borderColor: colors.primary,
+    backgroundColor: "rgba(229, 9, 20, 0.06)",
   },
   paymentMethodText: {
     fontSize: 16,
@@ -484,11 +432,11 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   selectedPaymentMethodText: {
-    color: "#E50914",
+    color: colors.primary,
     fontWeight: "500",
   },
   cardDetailsContainer: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     padding: 20,
     marginBottom: 10,
   },
@@ -504,7 +452,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9f9f9",
     borderWidth: 1,
     borderColor: "#ddd",
-    borderRadius: 5,
+    borderRadius: radii.md,
     padding: 12,
     fontSize: 16,
   },
@@ -512,7 +460,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   paypalContainer: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     padding: 20,
     marginBottom: 10,
     alignItems: "center",
@@ -524,13 +472,13 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     borderTopWidth: 1,
     borderTopColor: "#ddd",
   },
   payButton: {
-    backgroundColor: "#E50914",
-    borderRadius: 5,
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
     padding: 15,
     alignItems: "center",
   },

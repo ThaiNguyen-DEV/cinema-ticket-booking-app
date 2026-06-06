@@ -1,436 +1,111 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  Image,
-  ActivityIndicator,
-  Alert,
-  TextInput,
-  RefreshControl,
-} from "react-native";
-import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
-import { db } from "../../config/firebase";
+import { useMemo, useState } from "react";
+import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
-interface Movie {
-  id: string;
-  title: string;
-  genre: string;
-  releaseDate: any; // Changed from string | Date to any to handle all possible types
-  posterUrl: string;
-}
+import AppHeadbar from "../../components/AppHeadbar";
+import { colors, radii, shadow } from "../../theme";
+import { demoMovies } from "../../data/demoData";
 
 const ManageMoviesScreen = ({ navigation }: any) => {
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [filteredMovies, setFilteredMovies] = useState<Movie[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [movies, setMovies] = useState(demoMovies);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchMovies = async () => {
-    try {
-      setLoading(true);
-
-      const moviesSnapshot = await getDocs(collection(db, "movies"));
-      const moviesData = moviesSnapshot.docs.map((doc) => ({
-        ...(doc.data() as Movie),
-        id: doc.id,
-      }));
-
-      // Sort movies by release date (newest first) with safer date handling
-      moviesData.sort((a, b) => {
-        // Safely convert to Date objects with fallbacks
-        const getDateValue = (dateInput: any): number => {
-          if (!dateInput) return 0;
-
-          try {
-            // Handle Firestore timestamp objects
-            if (dateInput && typeof dateInput.toDate === "function") {
-              return dateInput.toDate().getTime();
-            }
-
-            // Handle Date objects
-            if (dateInput instanceof Date) {
-              return dateInput.getTime();
-            }
-
-            // Handle string dates
-            if (typeof dateInput === "string") {
-              return new Date(dateInput).getTime();
-            }
-
-            // Handle numeric timestamps
-            if (typeof dateInput === "number") {
-              return dateInput;
-            }
-
-            return 0;
-          } catch (error) {
-            console.error("Date conversion error:", error);
-            return 0;
-          }
-        };
-
-        const dateAValue = getDateValue(a.releaseDate);
-        const dateBValue = getDateValue(b.releaseDate);
-
-        return dateBValue - dateAValue;
-      });
-
-      setMovies(moviesData);
-      setFilteredMovies(moviesData);
-    } catch (error) {
-      console.error("Error fetching movies:", error);
-      Alert.alert("Error", "Failed to load movies");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchMovies();
-
-    // Add listener for when screen comes into focus
-    const unsubscribe = navigation.addListener("focus", () => {
-      fetchMovies();
-    });
-
-    return unsubscribe;
-  }, [navigation]);
-
-  useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredMovies(movies);
-    } else {
-      const filtered = movies.filter((movie) =>
+  const filteredMovies = useMemo(
+    () =>
+      movies.filter((movie) =>
         movie.title.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredMovies(filtered);
-    }
-  }, [searchQuery, movies]);
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchMovies();
-  };
-
-  const handleDeleteMovie = (movieId: string) => {
-    Alert.alert("Delete Movie", "Are you sure you want to delete this movie?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await deleteDoc(doc(db, "movies", movieId));
-            setMovies(movies.filter((movie) => movie.id !== movieId));
-            setFilteredMovies(
-              filteredMovies.filter((movie) => movie.id !== movieId)
-            );
-            Alert.alert("Success", "Movie deleted successfully");
-          } catch (error) {
-            console.error("Error deleting movie:", error);
-            Alert.alert("Error", "Failed to delete movie");
-          }
-        },
-      },
-    ]);
-  };
-
-  const renderMovieItem = ({ item }: { item: Movie }) => {
-    // Format release date with safer handling
-    let formattedDate = "Unknown date";
-
-    try {
-      if (item.releaseDate) {
-        // Handle Firestore timestamp
-        if (typeof item.releaseDate.toDate === "function") {
-          formattedDate = item.releaseDate
-            .toDate()
-            .toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            });
-        }
-        // Handle Date object
-        else if (item.releaseDate instanceof Date) {
-          formattedDate = item.releaseDate.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          });
-        }
-        // Handle string date
-        else if (typeof item.releaseDate === "string") {
-          formattedDate = new Date(item.releaseDate).toLocaleDateString(
-            "en-US",
-            {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            }
-          );
-        }
-      }
-    } catch (error) {
-      console.error("Date formatting error:", error);
-      formattedDate = "Invalid date";
-    }
-
-    return (
-      <View style={styles.movieCard}>
-        <Image
-          source={{ uri: item.posterUrl }}
-          style={styles.moviePoster}
-          resizeMode="cover"
-        />
-
-        <View style={styles.movieInfo}>
-          <Text style={styles.movieTitle} numberOfLines={1}>
-            {item.title}
-          </Text>
-          <Text style={styles.movieGenre} numberOfLines={1}>
-            {item.genre}
-          </Text>
-          <Text style={styles.movieDate}>Release: {formattedDate}</Text>
-
-          <View style={styles.movieActions}>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.editButton]}
-              onPress={() =>
-                navigation.navigate("EditMovie", { movieId: item.id })
-              }
-            >
-              <Ionicons name="create-outline" size={16} color="#fff" />
-              <Text style={styles.actionButtonText}>Edit</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.actionButton, styles.showtimesButton]}
-              onPress={() =>
-                navigation.navigate("ManageShowtimes", { movieId: item.id })
-              }
-            >
-              <Ionicons name="time-outline" size={16} color="#fff" />
-              <Text style={styles.actionButtonText}>Showtimes</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.actionButton, styles.deleteButton]}
-              onPress={() => handleDeleteMovie(item.id)}
-            >
-              <Ionicons name="trash-outline" size={16} color="#fff" />
-              <Text style={styles.actionButtonText}>Delete</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    );
-  };
+      ),
+    [movies, searchQuery]
+  );
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Manage Movies</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => navigation.navigate("EditMovie", { isNew: true })}
-        >
-          <Ionicons name="add" size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
-
+    <View style={styles.container}>
+      <AppHeadbar
+        eyebrow="ADMIN"
+        title="Movies"
+        subtitle={`${movies.length} local mock records`}
+        rightIcon="add-outline"
+      />
       <View style={styles.searchContainer}>
-        <Ionicons
-          name="search"
-          size={20}
-          color="#666"
-          style={styles.searchIcon}
-        />
+        <Ionicons name="search" size={20} color={colors.mutedDark} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search movies..."
+          placeholder="Search mock movies..."
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity
-            style={styles.clearButton}
-            onPress={() => setSearchQuery("")}
-          >
-            <Ionicons name="close-circle" size={20} color="#666" />
-          </TouchableOpacity>
-        )}
       </View>
-
-      {loading && !refreshing ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#E50914" />
-        </View>
-      ) : (
-        <FlatList
-          data={filteredMovies}
-          renderItem={renderMovieItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.moviesList}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Ionicons name="film-outline" size={80} color="#ccc" />
-              <Text style={styles.emptyText}>
-                {searchQuery.length > 0
-                  ? "No movies match your search"
-                  : "No movies available"}
-              </Text>
+      <FlatList
+        data={filteredMovies}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Image source={{ uri: item.posterUrl }} style={styles.poster} />
+            <View style={styles.info}>
+              <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
+              <Text style={styles.meta}>{item.genre} • {item.duration} min</Text>
+              <Text style={styles.meta}>Rating {item.rating}/10</Text>
+              <View style={styles.actions}>
+                <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("ManageShowtimes", { movieId: item.id })}>
+                  <Ionicons name="time-outline" size={15} color={colors.text} />
+                  <Text style={styles.actionText}>Times</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.deleteButton]}
+                  onPress={() => setMovies((current) => current.filter((movie) => movie.id !== item.id))}
+                >
+                  <Ionicons name="trash-outline" size={15} color={colors.text} />
+                  <Text style={styles.actionText}>Remove</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          }
-        />
-      )}
+          </View>
+        )}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 15,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#E50914",
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  container: { flex: 1, backgroundColor: colors.lightBg },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
+    gap: 10,
+    margin: 16,
+    marginBottom: 8,
+    paddingHorizontal: 14,
+    backgroundColor: colors.card,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.lightBorder,
   },
-  searchIcon: {
-    marginRight: 10,
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    fontSize: 16,
-  },
-  clearButton: {
-    padding: 5,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  moviesList: {
-    padding: 15,
-  },
-  movieCard: {
+  searchInput: { flex: 1, height: 46, fontSize: 15 },
+  list: { padding: 16, paddingTop: 8, paddingBottom: 24 },
+  card: {
     flexDirection: "row",
-    backgroundColor: "#fff",
-    borderRadius: 10,
+    backgroundColor: colors.card,
+    borderRadius: radii.lg,
     overflow: "hidden",
-    marginBottom: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    marginBottom: 14,
+    ...shadow,
   },
-  moviePoster: {
-    width: 100,
-    height: 150,
-  },
-  movieInfo: {
-    flex: 1,
-    padding: 15,
-  },
-  movieTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 5,
-  },
-  movieGenre: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 5,
-  },
-  movieDate: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 15,
-  },
-  movieActions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
+  poster: { width: 96, height: 142 },
+  info: { flex: 1, padding: 14 },
+  title: { fontSize: 17, fontWeight: "900", color: colors.textDark },
+  meta: { marginTop: 5, color: colors.mutedDark, fontWeight: "600" },
+  actions: { flexDirection: "row", gap: 8, marginTop: 14 },
   actionButton: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 6,
+    gap: 5,
     paddingHorizontal: 10,
-    borderRadius: 5,
-    flex: 1,
-    marginHorizontal: 2,
+    paddingVertical: 8,
+    borderRadius: radii.sm,
+    backgroundColor: colors.background,
   },
-  actionButtonText: {
-    color: "#fff",
-    fontSize: 12,
-    marginLeft: 5,
-  },
-  editButton: {
-    backgroundColor: "#2196F3",
-  },
-  showtimesButton: {
-    backgroundColor: "#FF9800",
-  },
-  deleteButton: {
-    backgroundColor: "#F44336",
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-    marginTop: 50,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "#666",
-    marginTop: 10,
-    textAlign: "center",
-  },
+  deleteButton: { backgroundColor: colors.primary },
+  actionText: { color: colors.text, fontWeight: "900", fontSize: 12 },
 });
 
 export default ManageMoviesScreen;

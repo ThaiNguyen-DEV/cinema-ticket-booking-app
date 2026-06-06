@@ -1,0 +1,59 @@
+@startuml
+title Cinema Ticket Booking App - Use Case Diagram
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+actor Customer
+actor Admin
+
+rectangle "Cinema Ticket Booking App" {
+  usecase "Login / Register" as UCAuth
+  usecase "Browse Movies" as UCBrowse
+  usecase "View Movie Details" as UCDetails
+  usecase "Use Fake Cinema AI" as UCAI
+  usecase "Select Showtime" as UCShowtime
+  usecase "Select Seats" as UCSeats
+  usecase "Mock Payment" as UCPayment
+  usecase "View Tickets\nwith QR Code" as UCTickets
+  usecase "Manage Profile" as UCProfile
+  usecase "Manage Payment Methods" as UCPayMethods
+  usecase "Manage Notifications" as UCNotifications
+
+  usecase "View Admin Dashboard" as UCAdminDashboard
+  usecase "Manage Movies" as UCAdminMovies
+  usecase "Manage Promotions" as UCAdminPromos
+  usecase "Manage Bookings" as UCAdminBookings
+  usecase "Manage Showtimes" as UCAdminShowtimes
+}
+
+Customer --> UCAuth
+Customer --> UCBrowse
+Customer --> UCDetails
+Customer --> UCAI
+Customer --> UCShowtime
+Customer --> UCSeats
+Customer --> UCPayment
+Customer --> UCTickets
+Customer --> UCProfile
+Customer --> UCPayMethods
+Customer --> UCNotifications
+
+Admin --> UCAuth
+Admin --> UCAdminDashboard
+Admin --> UCAdminMovies
+Admin --> UCAdminPromos
+Admin --> UCAdminBookings
+Admin --> UCAdminShowtimes
+
+UCBrowse --> UCDetails : opens
+UCDetails --> UCShowtime : book tickets
+UCShowtime --> UCSeats : continue
+UCSeats --> UCPayment : continue
+UCPayment --> UCTickets : confirmed
+UCProfile --> UCPayMethods
+UCProfile --> UCNotifications
+
+
+@enduml

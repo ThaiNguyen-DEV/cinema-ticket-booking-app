@@ -1,0 +1,105 @@
+@startuml
+title Cinema Ticket Booking App - Component Architecture
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam package {
+  BackgroundColor #F5F6FA
+  BorderColor #2A2F3D
+}
+
+package "App Entry" {
+  [App.tsx] as App
+  [NavigationContainer] as NavContainer
+  [SafeAreaProvider] as SafeArea
+}
+
+package "Context" {
+  [AuthContext\nLocal Mock User] as Auth
+}
+
+package "Navigation" {
+  [RootNavigator] as RootNav
+  [Auth Stack\nLogin/Register] as AuthStack
+  [User Stack] as UserStack
+  [Bottom Tabs] as Tabs
+  [Admin Stack] as AdminStack
+}
+
+package "Shared UI" {
+  [AppHeadbar] as Headbar
+  [theme.ts] as Theme
+}
+
+package "Mock Data Layer" {
+  [demoData.ts] as DemoData
+}
+
+package "Customer Screens" {
+  [Home] as Home
+  [Cinema AI] as AI
+  [Movie Detail] as Detail
+  [Booking] as Booking
+  [Seat Selection] as Seats
+  [Payment] as Payment
+  [My Tickets] as Tickets
+  [Profile] as Profile
+}
+
+package "Admin Screens" {
+  [Admin Dashboard] as AdminDashboard
+  [Manage Movies] as AdminMovies
+  [Manage Promotions] as AdminPromos
+  [Manage Bookings] as AdminBookings
+  [Manage Showtimes] as AdminShowtimes
+}
+
+App --> SafeArea
+App --> Auth
+App --> NavContainer
+NavContainer --> RootNav
+RootNav --> AuthStack
+RootNav --> UserStack
+UserStack --> Tabs
+Tabs --> Home
+Tabs --> AI
+Tabs --> Tickets
+Tabs --> Profile
+Tabs --> AdminStack
+AdminStack --> AdminDashboard
+AdminStack --> AdminMovies
+AdminStack --> AdminPromos
+AdminStack --> AdminBookings
+AdminStack --> AdminShowtimes
+
+Home --> Detail
+Detail --> Booking
+Booking --> Seats
+Seats --> Payment
+Payment --> Tickets
+
+Home ..> DemoData
+AI ..> DemoData
+Detail ..> DemoData
+Booking ..> DemoData
+Seats ..> DemoData
+Payment ..> DemoData
+Tickets ..> DemoData
+AdminDashboard ..> DemoData
+AdminMovies ..> DemoData
+AdminPromos ..> DemoData
+AdminBookings ..> DemoData
+AdminShowtimes ..> DemoData
+
+Headbar ..> Theme
+Home ..> Headbar
+AI ..> Headbar
+Profile ..> Headbar
+AdminDashboard ..> Headbar
+
+note right of DemoData
+Local mock data replaces Firebase
+until a new backend is connected.
+end note
+
+@enduml

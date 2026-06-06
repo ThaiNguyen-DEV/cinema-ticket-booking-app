@@ -1,0 +1,45 @@
+@startuml
+title Cinema Ticket Booking App - Admin Mock Data Flow
+
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #FFFFFF
+  BorderColor #151821
+  ArrowColor #E50914
+}
+
+start
+:Open Admin tab;
+:Admin Dashboard;
+:Load dashboard stats from demoData.ts;
+
+if (Admin action?) then (Movies)
+  :Open Manage Movies;
+  :Search local movie records;
+  :Remove movie locally if needed;
+elseif (Promotions)
+  :Open Manage Promotions;
+  :View local promotion campaigns;
+  :Open linked mock article;
+  :Remove promotion locally if needed;
+elseif (Bookings)
+  :Open Manage Bookings;
+  :Search mock bookings;
+  :Expand booking details;
+  :Cancel mock booking locally;
+elseif (Showtimes)
+  :Open Manage Showtimes;
+  :Select movie;
+  :Generate local showtime list;
+  :Remove showtime locally if needed;
+endif
+
+:Return to Admin Dashboard or main tabs;
+stop
+
+note right
+Admin create/edit screens are placeholders.
+They can be reconnected after the new backend is ready.
+end note
+
+@enduml

@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
+import { colors, radii, shadow } from "../../theme";
 
 const LoginScreen = ({ navigation }: any) => {
   const [email, setEmail] = useState("");
@@ -99,7 +100,7 @@ const LoginScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.background,
   },
   keyboardView: {
     flex: 1,
@@ -119,17 +120,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     marginTop: 10,
-    color: "#333",
+    color: colors.text,
   },
   formContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
+    backgroundColor: colors.card,
+    borderRadius: radii.lg,
     padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...shadow,
   },
   label: {
     fontSize: 16,
@@ -139,15 +136,15 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: "#f9f9f9",
-    borderRadius: 5,
+    borderRadius: radii.md,
     padding: 15,
     marginBottom: 15,
     borderWidth: 1,
     borderColor: "#ddd",
   },
   button: {
-    backgroundColor: "#E50914",
-    borderRadius: 5,
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
     padding: 15,
     alignItems: "center",
     marginTop: 10,
@@ -166,7 +163,7 @@ const styles = StyleSheet.create({
     color: "#666",
   },
   footerLink: {
-    color: "#E50914",
+    color: colors.primary,
     fontWeight: "bold",
   },
 });

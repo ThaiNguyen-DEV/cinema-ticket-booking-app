@@ -1,0 +1,56 @@
+@startuml
+title Cinema Ticket Booking App - Booking Sequence
+
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #E50914
+  LifeLineBorderColor #2A2F3D
+  ParticipantBorderColor #2A2F3D
+  ParticipantBackgroundColor #F5F6FA
+}
+
+actor Customer
+participant "HomeScreen" as Home
+participant "MovieDetailScreen" as Detail
+participant "BookingScreen" as Booking
+participant "SeatSelectionScreen" as Seats
+participant "PaymentScreen" as Payment
+participant "MyTicketsScreen" as Tickets
+database "demoData.ts\nLocal Mock Data" as Mock
+
+Customer -> Home : Browse movies
+Home -> Mock : Load demoMovies and demoPromotions
+Mock --> Home : Movie and promotion data
+
+Customer -> Home : Select movie
+Home -> Detail : Navigate(movieId)
+Detail -> Mock : getDemoMovie(movieId)
+Mock --> Detail : Movie detail
+
+Customer -> Detail : Press "Book Tickets"
+Detail -> Booking : Navigate(movieId)
+Booking -> Mock : getDemoShowtimes(movieId, date)
+Mock --> Booking : Showtimes
+
+Customer -> Booking : Select date and showtime
+Booking -> Seats : Navigate(movieId, showtimeId)
+Seats -> Mock : getDemoSeats(showtimeId)
+Mock --> Seats : Seat map
+
+Customer -> Seats : Select seats
+Seats -> Seats : Calculate total price
+Customer -> Seats : Continue
+Seats -> Payment : Navigate(selectedSeats, totalPrice)
+
+Payment -> Mock : getDemoMovie + getDemoShowtime + getDemoSeats
+Mock --> Payment : Booking summary
+Customer -> Payment : Choose mock payment method
+Customer -> Payment : Confirm payment
+Payment -> Payment : Create mock booking confirmation
+Payment -> Tickets : Navigate("My Tickets")
+
+Tickets -> Mock : Load demoTickets
+Mock --> Tickets : Ticket list with QR data
+Tickets --> Customer : Show QR ticket
+
+@enduml

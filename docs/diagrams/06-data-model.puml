@@ -1,0 +1,85 @@
+@startuml
+title Cinema Ticket Booking App - Mock Data Model
+
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #151821
+  ArrowColor #E50914
+}
+skinparam shadowing false
+
+class DemoMovie {
+  id: string
+  title: string
+  genre: string
+  duration: number
+  rating: number
+  releaseDate: string
+  endDate: string
+  posterUrl: string
+  backdropUrl: string
+  synopsis: string
+  cast: string
+  director: string
+}
+
+class DemoPromotion {
+  id: string
+  articleId: string
+  title: string
+  imageUrl: string
+}
+
+class DemoArticle {
+  id: string
+  title: string
+  imageUrl: string
+  content: string
+  createdAt: timestamp
+}
+
+class DemoShowtime {
+  id: string
+  movieId: string
+  date: string
+  time: string
+  screen: string
+}
+
+class DemoSeat {
+  id: string
+  row: string
+  number: number
+  status: available | booked
+  type: standard | premium | vip
+  price: number
+}
+
+class DemoTicket {
+  id: string
+  reference: string
+  totalPrice: number
+  createdAt: timestamp
+}
+
+class DemoPaymentMethod {
+  id: string
+  cardNumber: string
+  cardholderName: string
+  expiryDate: string
+  isDefault: boolean
+}
+
+DemoMovie "1" -- "many" DemoShowtime : has
+DemoShowtime "1" -- "many" DemoSeat : generates
+DemoTicket "many" -- "1" DemoMovie : references
+DemoTicket "many" -- "1" DemoShowtime : references
+DemoTicket "1" -- "many" DemoSeat : contains
+DemoPromotion "many" -- "1" DemoArticle : links
+
+note bottom
+These models are local mock objects in src/data/demoData.ts.
+They are not persisted to a backend in the current version.
+end note
+
+@enduml

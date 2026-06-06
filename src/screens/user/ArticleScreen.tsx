@@ -11,10 +11,9 @@ import {
   TouchableOpacity,
   StatusBar,
 } from "react-native";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "../../config/firebase";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { getDemoArticle } from "../../data/demoData";
 
 const ArticleScreen = ({ route, navigation }: any) => {
   const { articleId } = route.params;
@@ -22,22 +21,8 @@ const ArticleScreen = ({ route, navigation }: any) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchArticle = async () => {
-      try {
-        setLoading(true);
-
-        const articleDoc = await getDoc(doc(db, "articles", articleId));
-        if (articleDoc.exists()) {
-          setArticle({ id: articleDoc.id, ...articleDoc.data() });
-        }
-      } catch (error) {
-        console.error("Error fetching article:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchArticle();
+    setArticle(getDemoArticle(articleId));
+    setLoading(false);
   }, [articleId]);
 
   if (loading) {

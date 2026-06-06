@@ -1,22 +1,14 @@
-"use client";
-
 import type React from "react";
-import { createContext, useState, useEffect, useContext } from "react";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  type User,
-  updateProfile,
-} from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
-import { auth, db } from "../config/firebase";
+import { createContext, useContext, useMemo, useState } from "react";
 
-
+type DemoUser = {
+  uid: string;
+  email: string;
+  displayName: string;
+};
 
 type AuthContextType = {
-  user: User | null;
+  user: DemoUser | null;
   isAdmin: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -26,15 +18,23 @@ type AuthContextType = {
     displayName: string
   ) => Promise<void>;
   logout: () => Promise<void>;
+  updateDisplayName: (displayName: string) => void;
+};
+
+const guestUser: DemoUser = {
+  uid: "guest-user",
+  email: "guest@cinema.local",
+  displayName: "Guest",
 };
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isAdmin: false,
-  loading: true,
+  loading: false,
   login: async () => {},
   register: async () => {},
   logout: async () => {},
+  updateDisplayName: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -42,79 +42,39 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<DemoUser | null>(null);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-
-      if (currentUser) {
-        // Check if user is admin
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-        if (userDoc.exists()) {
-          setIsAdmin(userDoc.data().role === "admin");
-        }
-      } else {
-        setIsAdmin(false);
-      }
-
-      setLoading(false);
-    });
-
-    return unsubscribe;
-  }, []);
-
-  const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
-  };
-
-  const register = async (
-    email: string,
-    password: string,
-    displayName: string
-  ): Promise<void> => {
-    try {
-      // Create user in Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
-
-      // Update profile with display name
-      await updateProfile(user, { displayName });
-
-      // Create user document in Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        email,
-        displayName,
-        role: "user", // Default role
-        createdAt: new Date(),
-      });
-    } catch (error) {
-      console.error("Registration error:", error);
-      throw error;
-    }
-  };
-
-  const logout = async (): Promise<void> => {
-    try {
-      await signOut(auth);
-      // The onAuthStateChanged listener will handle setting user to null
-    } catch (error) {
-      console.error("Logout error:", error);
-      throw error;
-    }
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{ user, isAdmin, loading, login, register, logout }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo<AuthContextType>(
+    () => ({
+      user,
+      isAdmin: false,
+      loading: false,
+      login: async (email) => {
+        setUser({
+          uid: "mock-user",
+          email: email || guestUser.email,
+          displayName: email ? email.split("@")[0] : guestUser.displayName,
+        });
+      },
+      register: async (_email, _password, displayName) => {
+        setUser({
+          uid: "mock-user",
+          email: _email || guestUser.email,
+          displayName: displayName || guestUser.displayName,
+        });
+      },
+      logout: async () => {
+        setUser(null);
+      },
+      updateDisplayName: (displayName) => {
+        setUser((currentUser) => ({
+          ...(currentUser ?? guestUser),
+          displayName,
+        }));
+      },
+    }),
+    [user]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

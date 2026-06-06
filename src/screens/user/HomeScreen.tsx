@@ -14,116 +14,43 @@ import {
   StatusBar,
   ImageBackground,
 } from "react-native";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
-import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import Carousel from "react-native-reanimated-carousel";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { colors, radii, shadow } from "../../theme";
+import { demoMovies, demoPromotions } from "../../data/demoData";
+import AppHeadbar from "../../components/AppHeadbar";
 
 const { width } = Dimensions.get("window");
+
+const aiShortcuts = [
+  { id: "pick", icon: "sparkles-outline", title: "AI Pick", text: "Find a movie for your mood" },
+  { id: "seat", icon: "albums-outline", title: "Seat AI", text: "Best angle and comfort" },
+  { id: "combo", icon: "fast-food-outline", title: "Snack AI", text: "Mock combo builder" },
+];
 
 const HomeScreen = ({ navigation }: any) => {
   const { user } = useAuth();
   const [promotions, setPromotions] = useState<any[]>([]);
   const [currentMovies, setCurrentMovies] = useState<any[]>([]);
   const [upcomingMovies, setUpcomingMovies] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Replace the fetchData function with this improved version that handles dates properly
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-
-      // Fetch promotions
-      const promotionsQuery = query(
-        collection(db, "promotions"),
-        orderBy("createdAt", "desc")
-      );
-      const promotionsSnapshot = await getDocs(promotionsQuery);
-      const promotionsData = promotionsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setPromotions(promotionsData);
-
-      // Fetch all movies first
-      const moviesSnapshot = await getDocs(collection(db, "movies"));
-      const moviesData = moviesSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      // Get current date for comparison
-      const now = new Date();
-
-      // Helper function to safely convert any date format to a Date object
-      const getDateObject = (dateValue: any): Date | null => {
-        if (!dateValue) return null;
-
-        try {
-          // Handle Firestore timestamp
-          if (dateValue && typeof dateValue.toDate === "function") {
-            return dateValue.toDate();
-          }
-          // Handle Date object
-          else if (dateValue instanceof Date) {
-            return dateValue;
-          }
-          // Handle string date
-          else if (typeof dateValue === "string") {
-            return new Date(dateValue);
-          }
-          // Handle numeric timestamp
-          else if (typeof dateValue === "number") {
-            return new Date(dateValue);
-          }
-          return null;
-        } catch (error) {
-          console.error("Date conversion error:", error);
-          return null;
-        }
-      };
-
-      // Filter current movies (release date <= now <= end date)
-      const currentMoviesData = moviesData.filter((movie: any) => {
-        const releaseDate = getDateObject(movie.releaseDate);
-        const endDate = getDateObject(movie.endDate);
-
-        // If we can't determine the dates, don't include the movie
-        if (!releaseDate || !endDate) return false;
-
-        return releaseDate <= now && endDate >= now;
-      });
-
-      // Filter upcoming movies (release date > now)
-      const upcomingMoviesData = moviesData.filter((movie: any) => {
-        const releaseDate = getDateObject(movie.releaseDate);
-
-        // If we can't determine the release date, don't include the movie
-        if (!releaseDate) return false;
-
-        return releaseDate > now;
-      });
-
-      setCurrentMovies(currentMoviesData);
-      setUpcomingMovies(upcomingMoviesData);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+  const loadMockData = () => {
+    setPromotions(demoPromotions);
+    setCurrentMovies(demoMovies.filter((movie) => new Date(movie.releaseDate) <= new Date()));
+    setUpcomingMovies(demoMovies.filter((movie) => new Date(movie.releaseDate) > new Date()));
+    setRefreshing(false);
   };
 
   useEffect(() => {
-    fetchData();
+    loadMockData();
   }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchData();
+    loadMockData();
   };
 
   const renderPromotionItem = ({ item }: any) => (
@@ -137,7 +64,14 @@ const HomeScreen = ({ navigation }: any) => {
         source={{ uri: item.imageUrl }}
         style={styles.carouselImage}
         resizeMode="cover"
-      />
+      >
+        <LinearGradient
+          colors={["transparent", "rgba(15,17,23,0.9)"]}
+          style={styles.carouselGradient}
+        >
+          <Text style={styles.carouselTitle}>{item.title}</Text>
+        </LinearGradient>
+      </ImageBackground>
     </TouchableOpacity>
   );
 
@@ -177,30 +111,14 @@ const HomeScreen = ({ navigation }: any) => {
 
   return (
     <View style={styles.mainContainer}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
 
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>
-            Hello, {user?.displayName || "Guest"}
-          </Text>
-          <Text style={styles.subGreeting}>
-            What would you like to watch today?
-          </Text>
-        </View>
-        <TouchableOpacity
-          style={styles.profileButton}
-          onPress={() => navigation.navigate("Profile")}
-        >
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarText}>
-              {user?.displayName
-                ? user.displayName.charAt(0).toUpperCase()
-                : "G"}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+      <AppHeadbar
+        title={`Hello, ${user?.displayName || "Guest"}`}
+        subtitle="Pick a movie, ask the fake AI, or book a seat"
+        rightIcon="person-outline"
+        onRightPress={() => navigation.navigate("Profile")}
+      />
 
       <ScrollView
         refreshControl={
@@ -210,6 +128,25 @@ const HomeScreen = ({ navigation }: any) => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
       >
+        <View style={styles.offlineBanner}>
+          <Ionicons name="sparkles-outline" size={18} color={colors.accent} />
+          <Text style={styles.offlineText}>Mock cinema data is active while Firebase is being replaced</Text>
+        </View>
+
+        <View style={styles.aiRail}>
+          {aiShortcuts.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.aiCard}
+              onPress={() => navigation.navigate("AI")}
+            >
+              <Ionicons name={item.icon as any} size={22} color={colors.accent} />
+              <Text style={styles.aiTitle}>{item.title}</Text>
+              <Text style={styles.aiText}>{item.text}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
         {promotions.length > 0 && (
           <View style={styles.carouselContainer}>
             <Carousel
@@ -293,14 +230,15 @@ const HomeScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: "#f8f8f8",
+    backgroundColor: colors.background,
   },
   scrollView: {
     flex: 1,
-    backgroundColor: "#f8f8f8",
+    backgroundColor: colors.lightBg,
   },
   scrollViewContent: {
     flexGrow: 1,
+    paddingTop: 18,
   },
   container: {
     flex: 1,
@@ -310,20 +248,25 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    paddingHorizontal: 22,
+    paddingTop: 18,
+    paddingBottom: 20,
+    backgroundColor: colors.background,
+  },
+  eyebrow: {
+    fontSize: 11,
+    color: colors.accent,
+    fontWeight: "800",
+    marginBottom: 5,
   },
   greeting: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#333",
+    fontSize: 26,
+    fontWeight: "900",
+    color: colors.text,
   },
   subGreeting: {
     fontSize: 14,
-    color: "#666",
+    color: colors.muted,
     marginTop: 4,
   },
   profileButton: {
@@ -332,8 +275,8 @@ const styles = StyleSheet.create({
   avatarCircle: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: "#E50914",
+    borderRadius: 8,
+    backgroundColor: colors.primary,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -343,17 +286,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   carouselContainer: {
-    marginVertical: 15,
+    marginBottom: 26,
   },
   carouselItem: {
-    borderRadius: 12,
+    borderRadius: radii.lg,
     overflow: "hidden",
-    marginHorizontal: 5,
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    marginHorizontal: 8,
+    ...shadow,
   },
   carouselImage: {
     width: "100%",
@@ -361,17 +300,14 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   carouselGradient: {
-    height: "50%",
+    flex: 1,
     justifyContent: "flex-end",
-    padding: 15,
+    padding: 18,
   },
   carouselTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-    textShadowColor: "rgba(0, 0, 0, 0.75)",
-    textShadowOffset: { width: -1, height: 1 },
-    textShadowRadius: 10,
+    color: colors.text,
+    fontSize: 22,
+    fontWeight: "900",
   },
   sectionHeader: {
     flexDirection: "row",
@@ -382,12 +318,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
+    fontWeight: "900",
+    color: colors.textDark,
   },
   seeAllText: {
     fontSize: 14,
-    color: "#E50914",
+    color: colors.primary,
     fontWeight: "600",
   },
   moviesContainer: {
@@ -400,14 +336,10 @@ const styles = StyleSheet.create({
   movieCard: {
     width: 160,
     marginHorizontal: 10,
-    backgroundColor: "#fff",
-    borderRadius: 12,
+    backgroundColor: colors.card,
+    borderRadius: radii.lg,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...shadow,
   },
   posterContainer: {
     position: "relative",
@@ -420,8 +352,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 10,
     right: 10,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    borderRadius: 12,
+    backgroundColor: "rgba(15,17,23,0.78)",
+    borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
     flexDirection: "row",
@@ -439,17 +371,17 @@ const styles = StyleSheet.create({
   movieTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#333",
+    color: colors.textDark,
     marginBottom: 4,
   },
   movieGenre: {
     fontSize: 13,
-    color: "#666",
+    color: colors.mutedDark,
     marginBottom: 10,
   },
   bookButton: {
-    backgroundColor: "#E50914",
-    borderRadius: 6,
+    backgroundColor: colors.primary,
+    borderRadius: radii.sm,
     paddingVertical: 8,
     alignItems: "center",
   },
@@ -465,7 +397,7 @@ const styles = StyleSheet.create({
   },
   noMoviesText: {
     marginTop: 10,
-    color: "#666",
+    color: colors.mutedDark,
     fontSize: 16,
   },
   footer: {
@@ -475,6 +407,48 @@ const styles = StyleSheet.create({
   footerText: {
     color: "#999",
     fontSize: 12,
+  },
+  offlineBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: colors.surfaceElevated,
+    borderRadius: radii.md,
+  },
+  offlineText: {
+    flex: 1,
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  aiRail: {
+    flexDirection: "row",
+    paddingHorizontal: 14,
+    marginBottom: 20,
+    gap: 10,
+  },
+  aiCard: {
+    flex: 1,
+    minHeight: 112,
+    backgroundColor: colors.background,
+    borderRadius: radii.lg,
+    padding: 12,
+    justifyContent: "space-between",
+  },
+  aiTitle: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: "900",
+  },
+  aiText: {
+    color: colors.muted,
+    fontSize: 11,
+    lineHeight: 15,
+    fontWeight: "600",
   },
 });
 

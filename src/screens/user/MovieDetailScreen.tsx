@@ -13,11 +13,11 @@ import {
   StatusBar,
   Share,
 } from "react-native";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "../../config/firebase";
 import { Ionicons } from "@expo/vector-icons";
 import { WebView } from "react-native-webview";
 import { LinearGradient } from "expo-linear-gradient";
+import { colors, radii } from "../../theme";
+import { getDemoMovie } from "../../data/demoData";
 
 const { width } = Dimensions.get("window");
 
@@ -27,20 +27,8 @@ const MovieDetailScreen = ({ route, navigation }: any) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchMovie = async () => {
-      try {
-        const movieDoc = await getDoc(doc(db, "movies", movieId));
-        if (movieDoc.exists()) {
-          setMovie({ id: movieDoc.id, ...movieDoc.data() });
-        }
-      } catch (error) {
-        console.error("Error fetching movie:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMovie();
+    setMovie(getDemoMovie(movieId));
+    setLoading(false);
   }, [movieId]);
 
   const handleShare = async () => {
@@ -221,7 +209,7 @@ const MovieDetailScreen = ({ route, navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.background,
   },
   scrollView: {
     flex: 1,
@@ -230,13 +218,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: colors.background,
   },
   errorContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: colors.background,
     padding: 20,
   },
   errorText: {
@@ -246,7 +234,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   backToHomeButton: {
-    backgroundColor: "#E50914",
+    backgroundColor: colors.primary,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
@@ -298,9 +286,9 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: 20,
     marginTop: -40,
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: colors.card,
+    borderTopLeftRadius: radii.lg,
+    borderTopRightRadius: radii.lg,
   },
   titleContainer: {
     flexDirection: "row",
@@ -312,13 +300,13 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 24,
     fontWeight: "bold",
-    color: "#333",
+    color: colors.textDark,
     marginRight: 10,
   },
   ratingContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f8f8f8",
+    backgroundColor: colors.lightBg,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 15,
@@ -326,15 +314,15 @@ const styles = StyleSheet.create({
   rating: {
     fontSize: 14,
     fontWeight: "bold",
-    color: "#333",
+    color: colors.textDark,
     marginLeft: 5,
   },
   detailsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     marginBottom: 20,
-    backgroundColor: "#f8f8f8",
-    borderRadius: 10,
+    backgroundColor: colors.lightBg,
+    borderRadius: radii.md,
     padding: 10,
   },
   detailItem: {
@@ -357,7 +345,7 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 10,
     borderLeftWidth: 3,
-    borderLeftColor: "#E50914",
+    borderLeftColor: colors.primary,
     paddingLeft: 10,
   },
   synopsis: {
@@ -386,14 +374,14 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   footer: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     padding: 15,
     borderTopWidth: 1,
     borderTopColor: "#eee",
   },
   bookButton: {
-    backgroundColor: "#E50914",
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
     padding: 15,
     alignItems: "center",
   },

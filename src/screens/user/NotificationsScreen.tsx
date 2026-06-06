@@ -11,9 +11,6 @@ import {
   Alert,
   StatusBar,
 } from "react-native";
-import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
-import { db } from "../../config/firebase";
-import { useAuth } from "../../context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -26,7 +23,6 @@ interface NotificationSettings {
 }
 
 const NotificationsScreen = ({ navigation }: any) => {
-  const { user } = useAuth();
   const [settings, setSettings] = useState<NotificationSettings>({
     promotions: true,
     newReleases: true,
@@ -34,30 +30,12 @@ const NotificationsScreen = ({ navigation }: any) => {
     priceAlerts: false,
     appUpdates: true,
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetchNotificationSettings();
-  }, [user]);
-
-  const fetchNotificationSettings = async () => {
-    if (!user) return;
-
-    try {
-      setLoading(true);
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-
-      if (userDoc.exists() && userDoc.data().notificationSettings) {
-        setSettings(userDoc.data().notificationSettings);
-      }
-    } catch (error) {
-      console.error("Error fetching notification settings:", error);
-      Alert.alert("Error", "Failed to load notification settings");
-    } finally {
-      setLoading(false);
-    }
-  };
+    setLoading(false);
+  }, []);
 
   const handleToggle = (setting: keyof NotificationSettings) => {
     setSettings({
@@ -67,37 +45,9 @@ const NotificationsScreen = ({ navigation }: any) => {
   };
 
   const saveSettings = async () => {
-    if (!user) return;
-
-    try {
-      setSaving(true);
-
-      // Get current user data
-      const userRef = doc(db, "users", user.uid);
-      const userDoc = await getDoc(userRef);
-
-      if (userDoc.exists()) {
-        // Update existing document
-        await updateDoc(userRef, {
-          notificationSettings: settings,
-        });
-      } else {
-        // Create new document with settings
-        await setDoc(userRef, {
-          notificationSettings: settings,
-          email: user.email,
-          displayName: user.displayName,
-          createdAt: new Date(),
-        });
-      }
-
-      Alert.alert("Success", "Notification settings updated");
-    } catch (error) {
-      console.error("Error saving notification settings:", error);
-      Alert.alert("Error", "Failed to save notification settings");
-    } finally {
-      setSaving(false);
-    }
+    setSaving(true);
+    setSaving(false);
+    Alert.alert("Saved", "Notification settings are local in mock mode.");
   };
 
   return (

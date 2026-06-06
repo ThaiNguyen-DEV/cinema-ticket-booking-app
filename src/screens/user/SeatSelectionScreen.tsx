@@ -11,15 +11,8 @@ import {
   Alert,
   Dimensions,
 } from "react-native";
-import {
-  doc,
-  getDoc,
-  collection,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
-import { db } from "../../config/firebase";
+import { colors, radii } from "../../theme";
+import { getDemoMovie, getDemoSeats, getDemoShowtime } from "../../data/demoData";
 
 const { width } = Dimensions.get("window");
 const SEAT_SIZE = 30;
@@ -45,43 +38,11 @@ const SeatSelectionScreen = ({ route, navigation }: any) => {
   const [totalPrice, setTotalPrice] = useState(0);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-
-        // Fetch movie data
-        const movieDoc = await getDoc(doc(db, "movies", movieId));
-        if (movieDoc.exists()) {
-          setMovie({ id: movieDoc.id, ...movieDoc.data() });
-        }
-
-        // Fetch showtime data
-        const showtimeDoc = await getDoc(doc(db, "showtimes", showtimeId));
-        if (showtimeDoc.exists()) {
-          setShowtime({ id: showtimeDoc.id, ...showtimeDoc.data() });
-        }
-
-        // Fetch seats data
-        const seatsQuery = query(
-          collection(db, "seats"),
-          where("showtimeId", "==", showtimeId)
-        );
-
-        const seatsSnapshot = await getDocs(seatsQuery);
-        const seatsData = seatsSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Seat[];
-
-        setSeats(seatsData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    setLoading(true);
+    setMovie(getDemoMovie(movieId));
+    setShowtime(getDemoShowtime(movieId, showtimeId));
+    setSeats(getDemoSeats(showtimeId) as Seat[]);
+    setLoading(false);
   }, [movieId, showtimeId]);
 
   useEffect(() => {
@@ -197,7 +158,7 @@ const SeatSelectionScreen = ({ route, navigation }: any) => {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+    <View style={{ flex: 1, backgroundColor: colors.lightBg }}>
       <View style={styles.header}>
         {/* <TouchableOpacity
           style={styles.backButton}
@@ -295,7 +256,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderBottomColor: "#ddd",
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
   },
   backButton: {
     padding: 5,
@@ -310,7 +271,7 @@ const styles = StyleSheet.create({
   },
   movieInfo: {
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     marginBottom: 10,
   },
   movieTitle: {
@@ -331,7 +292,7 @@ const styles = StyleSheet.create({
     width: width * 0.8,
     height: 10,
     backgroundColor: "#ddd",
-    borderRadius: 5,
+    borderRadius: radii.sm,
     marginBottom: 10,
   },
   screenText: {
@@ -367,7 +328,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     margin: SEAT_MARGIN,
-    borderRadius: 5,
+    borderRadius: radii.md,
   },
   standardSeat: {
     backgroundColor: "#ddd",
@@ -412,7 +373,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "space-around",
     padding: 15,
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     borderTopWidth: 1,
     borderTopColor: "#ddd",
   },
@@ -433,7 +394,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     borderTopWidth: 1,
     borderTopColor: "#ddd",
   },
@@ -452,7 +413,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   continueButton: {
-    backgroundColor: "#E50914",
+    backgroundColor: colors.primary,
     borderRadius: 5,
     padding: 15,
     alignItems: "center",

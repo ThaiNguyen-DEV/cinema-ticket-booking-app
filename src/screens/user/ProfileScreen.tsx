@@ -9,16 +9,14 @@ import {
   Alert,
   ScrollView,
   TextInput,
-  ActivityIndicator,
   StatusBar,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
-import { doc, updateDoc } from "firebase/firestore";
-import { db } from "../../config/firebase";
-import { updateProfile } from "firebase/auth";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { colors, radii, shadow } from "../../theme";
+import AppHeadbar from "../../components/AppHeadbar";
 
 type RootStackParamList = {
   PaymentMethods: undefined;
@@ -31,57 +29,22 @@ type ProfileScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
 
 const ProfileScreen = () => {
-  const { user, logout } = useAuth();
+  const { user, updateDisplayName } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState(user?.displayName || "");
-  const [loading, setLoading] = useState(false);
   const navigation = useNavigation<ProfileScreenNavigationProp>();
 
-  const handleSaveProfile = async () => {
-    if (!user) return;
-
-    try {
-      setLoading(true);
-
-      // Update Firebase Auth profile
-      await updateProfile(user, {
-        displayName: displayName,
-      });
-
-      // Update Firestore user document
-      await updateDoc(doc(db, "users", user.uid), {
-        displayName: displayName,
-      });
-
-      Alert.alert("Success", "Profile updated successfully");
-      setIsEditing(false);
-    } catch (error: any) {
-      Alert.alert("Error", error.message);
-    } finally {
-      setLoading(false);
-    }
+  const handleSaveProfile = () => {
+    updateDisplayName(displayName.trim() || "Guest");
+    Alert.alert("Saved", "Guest profile updated for this session.");
+    setIsEditing(false);
   };
 
-  // Update the handleLogout function to ensure it works properly
-  const handleLogout = async () => {
-    try {
-      setLoading(true);
-      await logout();
-      console.log("Logout successful");
-      // The AuthContext's onAuthStateChanged listener should handle the redirect
-    } catch (error: any) {
-      console.error("Logout error:", error);
-      Alert.alert("Error", "Failed to logout. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const confirmLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Logout", onPress: handleLogout, style: "destructive" },
-    ]);
+  const showGuestMode = () => {
+    Alert.alert(
+      "Guest mode",
+      "Firebase auth is disabled right now, so the app opens as a local guest."
+    );
   };
 
   // Add handlers for the settings items
@@ -99,7 +62,13 @@ const ProfileScreen = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <AppHeadbar
+        eyebrow="ACCOUNT"
+        title="Profile"
+        subtitle="Local guest settings and fake preferences"
+        rightIcon="person-circle-outline"
+      />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.profileHeader}>
@@ -140,7 +109,6 @@ const ProfileScreen = () => {
                     setDisplayName(user?.displayName || "");
                     setIsEditing(false);
                   }}
-                  disabled={loading}
                 >
                   <Text style={styles.cancelButtonText}>Cancel</Text>
                 </TouchableOpacity>
@@ -148,13 +116,8 @@ const ProfileScreen = () => {
                 <TouchableOpacity
                   style={[styles.actionButton, styles.saveButton]}
                   onPress={handleSaveProfile}
-                  disabled={loading}
                 >
-                  {loading ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text style={styles.saveButtonText}>Save</Text>
-                  )}
+                  <Text style={styles.saveButtonText}>Save</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -164,6 +127,49 @@ const ProfileScreen = () => {
               <Text style={styles.userEmail}>{user?.email}</Text>
             </View>
           )}
+        </View>
+
+        <View style={styles.settingsSection}>
+          <Text style={styles.sectionTitle}>Experience</Text>
+
+          <TouchableOpacity style={styles.settingItem} onPress={showGuestMode}>
+            <View style={styles.settingIcon}>
+              <Ionicons name="sparkles-outline" size={24} color="#E50914" />
+            </View>
+            <View style={styles.settingContent}>
+              <Text style={styles.settingTitle}>AI Preferences</Text>
+              <Text style={styles.settingDescription}>
+                Mock mood, snack, and seat tuning
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color="#ccc" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.settingItem} onPress={showGuestMode}>
+            <View style={styles.settingIcon}>
+              <Ionicons name="heart-outline" size={24} color="#E50914" />
+            </View>
+            <View style={styles.settingContent}>
+              <Text style={styles.settingTitle}>Watchlist</Text>
+              <Text style={styles.settingDescription}>
+                6 fake saved movies for later
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color="#ccc" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.settingItem} onPress={showGuestMode}>
+            <View style={styles.settingIcon}>
+              <Ionicons name="ribbon-outline" size={24} color="#E50914" />
+            </View>
+            <View style={styles.settingContent}>
+              <Text style={styles.settingTitle}>Rewards</Text>
+              <Text style={styles.settingDescription}>
+                420 mock points and 2 perks
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color="#ccc" />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.settingsSection}>
@@ -207,7 +213,7 @@ const ProfileScreen = () => {
 
           <TouchableOpacity
             style={styles.settingItem}
-            onPress={handleChangePassword}
+            onPress={showGuestMode}
           >
             <View style={styles.settingIcon}>
               <Ionicons name="lock-closed-outline" size={24} color="#E50914" />
@@ -265,19 +271,9 @@ const ProfileScreen = () => {
         </View>
 
         <View style={styles.logoutSection}>
-          <TouchableOpacity
-            style={styles.logoutButton}
-            onPress={confirmLogout}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color="#E50914" />
-            ) : (
-              <>
-                <Ionicons name="log-out-outline" size={20} color="#E50914" />
-                <Text style={styles.logoutText}>Logout</Text>
-              </>
-            )}
+          <TouchableOpacity style={styles.logoutButton} onPress={showGuestMode}>
+            <Ionicons name="person-circle-outline" size={20} color={colors.primary} />
+            <Text style={styles.logoutText}>Guest Mode Active</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -288,17 +284,17 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f8f8",
+    backgroundColor: colors.lightBg,
   },
   content: {
     flex: 1,
   },
   profileHeader: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.background,
     padding: 20,
     alignItems: "center",
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: colors.border,
   },
   avatarContainer: {
     position: "relative",
@@ -307,8 +303,8 @@ const styles = StyleSheet.create({
   avatar: {
     width: 100,
     height: 100,
-    borderRadius: 50,
-    backgroundColor: "#E50914",
+    borderRadius: radii.lg,
+    backgroundColor: colors.primary,
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
@@ -341,12 +337,12 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#333",
+    color: colors.text,
     marginBottom: 5,
   },
   userEmail: {
     fontSize: 16,
-    color: "#666",
+    color: colors.muted,
   },
   editForm: {
     width: "100%",
@@ -365,7 +361,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9f9f9",
     borderWidth: 1,
     borderColor: "#ddd",
-    borderRadius: 8,
+    borderRadius: radii.md,
     padding: 12,
     fontSize: 16,
   },
@@ -386,7 +382,7 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
   },
   saveButton: {
-    backgroundColor: "#E50914",
+    backgroundColor: colors.primary,
   },
   cancelButtonText: {
     color: "#333",
@@ -399,34 +395,26 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   settingsSection: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     padding: 20,
     marginTop: 15,
     marginBottom: 15,
-    borderRadius: 10,
+    borderRadius: radii.lg,
     marginHorizontal: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    ...shadow,
   },
   aboutSection: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     padding: 20,
     marginBottom: 15,
-    borderRadius: 10,
+    borderRadius: radii.lg,
     marginHorizontal: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    ...shadow,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#333",
+    color: colors.textDark,
     marginBottom: 15,
   },
   settingItem: {
@@ -482,7 +470,7 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: 16,
     fontWeight: "500",
-    color: "#E50914",
+    color: colors.primary,
     marginLeft: 10,
   },
 });

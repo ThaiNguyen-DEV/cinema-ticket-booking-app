@@ -10,16 +10,9 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import {
-  doc,
-  getDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
-import { db } from "../../config/firebase";
 import { format } from "date-fns";
+import { colors, radii } from "../../theme";
+import { getDemoMovie, getDemoShowtimes } from "../../data/demoData";
 
 const BookingScreen = ({ route, navigation }: any) => {
   const { movieId } = route.params;
@@ -31,17 +24,6 @@ const BookingScreen = ({ route, navigation }: any) => {
   const [dates, setDates] = useState<Date[]>([]);
 
   useEffect(() => {
-    const fetchMovie = async () => {
-      try {
-        const movieDoc = await getDoc(doc(db, "movies", movieId));
-        if (movieDoc.exists()) {
-          setMovie({ id: movieDoc.id, ...movieDoc.data() });
-        }
-      } catch (error) {
-        console.error("Error fetching movie:", error);
-      }
-    };
-
     const generateDates = () => {
       const today = new Date();
       const nextDates: Date[] = [];
@@ -56,41 +38,15 @@ const BookingScreen = ({ route, navigation }: any) => {
       setSelectedDate(nextDates[0]);
     };
 
-    fetchMovie();
+    setMovie(getDemoMovie(movieId));
     generateDates();
   }, [movieId]);
 
   useEffect(() => {
-    const fetchShowtimes = async () => {
-      if (!selectedDate) return;
-
-      try {
-        setLoading(true);
-
-        // Format date to match Firestore date format (YYYY-MM-DD)
-        const formattedDate = format(selectedDate, "yyyy-MM-dd");
-
-        const showtimesQuery = query(
-          collection(db, "showtimes"),
-          where("movieId", "==", movieId),
-          where("date", "==", formattedDate)
-        );
-
-        const showtimesSnapshot = await getDocs(showtimesQuery);
-        const showtimesData = showtimesSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        setShowtimes(showtimesData);
-      } catch (error) {
-        console.error("Error fetching showtimes:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchShowtimes();
+    if (!selectedDate) return;
+    setLoading(true);
+    setShowtimes(getDemoShowtimes(movieId, selectedDate));
+    setLoading(false);
   }, [movieId, selectedDate]);
 
   const handleDateSelect = (date: Date) => {
@@ -175,7 +131,7 @@ const BookingScreen = ({ route, navigation }: any) => {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+    <View style={{ flex: 1, backgroundColor: colors.lightBg }}>
       <View style={styles.header}>
         {/* <TouchableOpacity
           style={styles.backButton}
@@ -261,7 +217,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderBottomColor: "#ddd",
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
   },
   backButton: {
     padding: 5,
@@ -269,7 +225,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#333",
+    color: colors.textDark,
   },
   placeholder: {
     width: 24,
@@ -287,17 +243,17 @@ const styles = StyleSheet.create({
   },
   movieDetails: {
     fontSize: 14,
-    color: "#666",
+    color: colors.mutedDark,
   },
   dateContainer: {
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     marginBottom: 10,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#333",
+    color: colors.textDark,
     marginBottom: 15,
   },
   dateList: {
@@ -309,14 +265,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 10,
-    borderRadius: 10,
-    backgroundColor: "#f9f9f9",
+    borderRadius: radii.md,
+    backgroundColor: colors.lightBg,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: colors.lightBorder,
   },
   selectedDateItem: {
-    backgroundColor: "#E50914",
-    borderColor: "#E50914",
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   dateDay: {
     fontSize: 14,
@@ -339,7 +295,7 @@ const styles = StyleSheet.create({
   showtimesContainer: {
     flex: 1,
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
   },
   loader: {
     marginTop: 20,
@@ -353,14 +309,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     margin: 5,
-    borderRadius: 10,
-    backgroundColor: "#f9f9f9",
+    borderRadius: radii.md,
+    backgroundColor: colors.lightBg,
     borderWidth: 1,
     borderColor: "#ddd",
   },
   selectedShowtimeItem: {
-    backgroundColor: "#E50914",
-    borderColor: "#E50914",
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   showtimeText: {
     fontSize: 16,
@@ -382,13 +338,13 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     borderTopWidth: 1,
     borderTopColor: "#ddd",
   },
   continueButton: {
-    backgroundColor: "#E50914",
-    borderRadius: 5,
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
     padding: 15,
     alignItems: "center",
   },
